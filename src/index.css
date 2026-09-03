@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: #f7f7f8;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* ---------- keyframes ---------- */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes viewer-in {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-float-y {
+  animation: float-y 5s ease-in-out infinite;
+}
+.anim-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-fade-in {
+  animation: fade-in 0.5s ease both;
+}
+.anim-viewer-in {
+  animation: viewer-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-spin-slow {
+  animation: spin-slow 14s linear infinite;
+}
+
+/* staggered entrances */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.14s; }
+.stagger-3 { animation-delay: 0.22s; }
+.stagger-4 { animation-delay: 0.3s; }
+
+/* loading overlay fade out */
+.loading-exit {
+  opacity: 0;
+  transform: scale(1.015);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+  pointer-events: none;
+}
+.loading-enter {
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+/* progress shimmer */
+.shimmer-track {
+  position: relative;
+  overflow: hidden;
+}
+.shimmer-track::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: shimmer-slide 1.6s ease-in-out infinite;
+}
+
+/* dotted studio backdrop for canvas */
+.viewer-dots {
+  background-image: radial-gradient(circle, rgba(17, 24, 39, 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* custom tooltip */
+.tip {
+  position: relative;
+}
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #111827;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+  z-index: 50;
+}
+.tip:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* thin scrollbar for any overflow */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 99px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+canvas {
+  outline: none;
+  touch-action: none;
+}
