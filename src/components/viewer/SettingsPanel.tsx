@@ -118,7 +118,7 @@ export default function SettingsPanel({
 }: Props) {
   return (
     <aside
-      className={`pointer-events-auto absolute top-16 right-3 z-30 flex max-h-[calc(100%-7.5rem)] w-[248px] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/78 shadow-[0_24px_60px_-16px_rgba(17,24,39,0.35)] backdrop-blur-2xl transition-all duration-300 ease-out sm:right-4 ${
+      className={`pointer-events-auto absolute top-16 right-3 z-30 flex max-h-[calc(100%-7.5rem)] w-[224px] max-w-[calc(100vw-4.5rem)] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/78 shadow-[0_24px_60px_-16px_rgba(17,24,39,0.35)] backdrop-blur-2xl transition-all duration-300 ease-out sm:right-4 sm:w-[248px] ${
         open
           ? 'translate-x-0 opacity-100'
           : 'pointer-events-none translate-x-6 opacity-0'
@@ -131,9 +131,9 @@ export default function SettingsPanel({
           <button
             type="button"
             onClick={onResetScene}
-            data-tip="Reset scene"
+            title="Reset scene"
             aria-label="Reset scene settings"
-            className="tip flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
           >
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
@@ -264,10 +264,10 @@ export default function SettingsPanel({
                   key={bg}
                   type="button"
                   onClick={() => onUpdate({ background: bg })}
-                  data-tip={bg}
+                  title={`${bg} background`}
                   aria-label={`${bg} background`}
                   aria-pressed={active}
-                  className={`tip h-9 cursor-pointer rounded-lg border-2 transition-all duration-200 active:scale-90 ${
+                  className={`h-9 cursor-pointer rounded-lg border-2 transition-all duration-200 active:scale-90 ${
                     active
                       ? 'border-gray-900 shadow-md'
                       : 'border-gray-200 hover:border-gray-400'

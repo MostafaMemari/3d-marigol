@@ -33,7 +33,7 @@ function BarButton({
       data-tip={tip}
       aria-label={label}
       aria-pressed={active}
-      className={`tip flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl transition-all duration-200 active:scale-90 ${
+      className={`tip flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-all duration-200 active:scale-90 ${
         active
           ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
           : 'text-gray-500 hover:-translate-y-0.5 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md'
@@ -57,12 +57,12 @@ export default function ViewerControls({
 }: Props) {
   const icon = 'h-[18px] w-[18px]';
   return (
-    <div className="anim-fade-up stagger-3 pointer-events-auto flex items-center gap-1 rounded-2xl border border-white/60 bg-white/85 p-1.5 shadow-[0_16px_45px_-12px_rgba(17,24,39,0.28)] backdrop-blur-xl">
+    <div className="anim-fade-up stagger-3 pointer-events-auto flex max-w-[calc(100vw-2rem)] flex-wrap items-center justify-center gap-1 rounded-2xl border border-white/60 bg-white/85 p-1.5 shadow-[0_16px_45px_-12px_rgba(17,24,39,0.28)] backdrop-blur-xl">
       <BarButton tip="Reset camera" label="Reset camera" onClick={onReset}>
         <RotateCcw className={`${icon} transition-transform duration-300 hover:-rotate-90`} />
       </BarButton>
 
-      <div className="h-6 w-px bg-gray-200/80" />
+      <div className="h-6 w-px shrink-0 bg-gray-200/80" />
 
       <BarButton
         tip={autoRotate ? 'Pause rotation' : 'Auto-rotate'}
@@ -91,7 +91,7 @@ export default function ViewerControls({
         <SlidersHorizontal className={icon} />
       </BarButton>
 
-      <div className="h-6 w-px bg-gray-200/80" />
+      <div className="h-6 w-px shrink-0 bg-gray-200/80" />
 
       <BarButton tip="Save screenshot" label="Take screenshot" onClick={onScreenshot}>
         <Camera className={icon} />

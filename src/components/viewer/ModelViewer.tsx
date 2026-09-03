@@ -146,8 +146,9 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
   const glRef = useRef<THREE.WebGLRenderer | null>(null);
 
   // ---- smart auto-rotation ----
+  // Cinematic showroom spin: hover never interrupts it; only direct
+  // manipulation pauses, resuming gently after a quiet moment.
   const [spinPaused, setSpinPaused] = useState(false);
-  const hoverRef = useRef(false);
   const interactingRef = useRef(false);
   const idleTimer = useRef<number | null>(null);
 
@@ -166,7 +167,7 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
   const scheduleResume = useCallback(() => {
     clearIdleTimer();
     idleTimer.current = window.setTimeout(() => {
-      if (!hoverRef.current && !interactingRef.current) setSpinPaused(false);
+      if (!interactingRef.current) setSpinPaused(false);
     }, AUTOROTATE_RESUME_MS);
   }, [clearIdleTimer]);
 
@@ -181,16 +182,6 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
     }
   }, [autoRotateEnabled, pauseSpin, scheduleResume]);
 
-  const handlePointerEnter = useCallback(() => {
-    hoverRef.current = true;
-    if (autoRotateEnabled) pauseSpin();
-  }, [autoRotateEnabled, pauseSpin]);
-
-  const handlePointerLeave = useCallback(() => {
-    hoverRef.current = false;
-    if (autoRotateEnabled && !interactingRef.current) scheduleResume();
-  }, [autoRotateEnabled, scheduleResume]);
-
   const handleControlStart = useCallback(() => {
     interactingRef.current = true;
     pauseSpin();
@@ -198,7 +189,7 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
 
   const handleControlEnd = useCallback(() => {
     interactingRef.current = false;
-    if (autoRotateEnabled && !hoverRef.current) scheduleResume();
+    if (autoRotateEnabled) scheduleResume();
   }, [autoRotateEnabled, scheduleResume]);
 
   // ---- imperative actions ----
@@ -250,12 +241,7 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
   const spinning = autoRotateEnabled && !spinPaused;
 
   return (
-    <div
-      ref={containerRef}
-      className="relative h-full w-full"
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
-    >
+    <div ref={containerRef} className="relative h-full w-full">
       <Canvas
         shadows={settings.shadows}
         dpr={[1, 2]}
@@ -357,7 +343,7 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
           maxDistance={14}
           maxPolarAngle={Math.PI / 2 + 0.08}
           autoRotate={spinning}
-          autoRotateSpeed={1.4}
+          autoRotateSpeed={0.8}
           enablePan
           enableZoom
           onStart={handleControlStart}
