@@ -1,16 +1,16 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Download, MousePointer2 } from 'lucide-react';
-import { useModelUrl } from './hooks/useModelUrl';
-import { useModelLoader } from './hooks/useModelLoader';
-import { useSceneSettings } from './hooks/useSceneSettings';
-import LoadingScreen from './components/viewer/LoadingScreen';
-import ErrorState from './components/viewer/ErrorState';
-import ViewerControls from './components/viewer/ViewerControls';
-import SettingsPanel from './components/viewer/SettingsPanel';
-import type { ModelViewerHandle } from './components/viewer/ModelViewer';
-import { BACKGROUND_CSS, buildProductUrl } from './lib/constants';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
+import { Box, Download, MousePointer2 } from "lucide-react";
+import { useModelUrl } from "./hooks/useModelUrl";
+import { useModelLoader } from "./hooks/useModelLoader";
+import { useSceneSettings } from "./hooks/useSceneSettings";
+import LoadingScreen from "./components/viewer/LoadingScreen";
+import ErrorState from "./components/viewer/ErrorState";
+import ViewerControls from "./components/viewer/ViewerControls";
+import SettingsPanel from "./components/viewer/SettingsPanel";
+import type { ModelViewerHandle } from "./components/viewer/ModelViewer";
+import { BACKGROUND_CSS, buildProductUrl } from "./lib/constants";
 
-const ModelViewer = lazy(() => import('./components/viewer/ModelViewer'));
+const ModelViewer = lazy(() => import("./components/viewer/ModelViewer"));
 
 export default function App() {
   const { id, modelUrl, isMissing } = useModelUrl();
@@ -48,26 +48,20 @@ export default function App() {
     if (el.requestFullscreen) void el.requestFullscreen().catch(() => undefined);
   }, []);
 
-  const showError = !isMissing && loader.status === 'error';
+  const showError = !isMissing && loader.status === "error";
   const showCanvas = !isMissing && !showError && loader.blobUrl !== null;
   const loadingVisible = !isMissing && !showError && (!modelReady || !overlayGone);
-  const isDarkUi = settings.background === 'dark' || settings.background === 'transparent';
+  const isDarkUi = settings.background === "dark" || settings.background === "transparent";
 
   return (
-    <div
-      ref={rootRef}
-      className="relative h-dvh w-full overflow-hidden"
-      style={{ background: BACKGROUND_CSS[settings.background] }}
-    >
+    <div ref={rootRef} className="relative h-dvh w-full overflow-hidden" style={{ background: BACKGROUND_CSS[settings.background] }}>
       {/* transparent-bg checkerboard */}
-      {settings.background === 'transparent' && (
-        <div className="checker-bg pointer-events-none absolute inset-0 opacity-60" />
-      )}
+      {settings.background === "transparent" && <div className="checker-bg pointer-events-none absolute inset-0 opacity-60" />}
 
       {/* 3D canvas — the hero, fills the viewport */}
       <div className="absolute inset-0">
         {showCanvas && (
-          <div className={modelReady ? 'anim-viewer-in h-full w-full' : 'h-full w-full opacity-0'}>
+          <div className={modelReady ? "anim-viewer-in h-full w-full" : "h-full w-full opacity-0"}>
             <Suspense fallback={null}>
               <ModelViewer
                 ref={viewerRef}
@@ -102,26 +96,19 @@ export default function App() {
           leaving={modelReady}
         />
       )}
-      {isMissing && (
-        <ErrorState kind="missing-id" modelId={null} onRetry={() => window.location.reload()} />
-      )}
-      {showError && (
-        <ErrorState kind={loader.errorKind ?? 'network'} modelId={id} onRetry={loader.retry} />
-      )}
+      {isMissing && <ErrorState kind="missing-id" modelId={null} onRetry={() => window.location.reload()} />}
+      {showError && <ErrorState kind={loader.errorKind ?? "network"} modelId={id} onRetry={loader.retry} />}
 
       {/* top floating bar */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-3 sm:p-4">
         <div className="anim-fade-up pointer-events-auto flex items-center gap-2.5 rounded-2xl border border-white/50 bg-white/75 py-2 pr-4 pl-2.5 shadow-lg shadow-gray-900/8 backdrop-blur-xl">
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-500 shadow-md shadow-indigo-600/25">
-            <Box className="h-4 w-4 text-white" strokeWidth={2.4} />
+            {/* <Box className="h-4 w-4 text-white" strokeWidth={2.4} /> */}
+            <img src="/logo.webp" className="h-4 w-4 text-white" />
           </span>
           <span className="leading-tight">
-            <span className="block text-[13.5px] font-bold tracking-tight text-gray-900">
-              Marigol 3D
-            </span>
-            <span className="block font-mono text-[10.5px] font-medium text-gray-400">
-              {id ? `#${id}` : 'viewer'}
-            </span>
+            <span className="block text-[13.5px] font-bold tracking-tight text-gray-900">Marigol 3D</span>
+            <span className="block font-mono text-[10.5px] font-medium text-gray-400">{id ? `#${id}` : "viewer"}</span>
           </span>
         </div>
 
@@ -160,8 +147,8 @@ export default function App() {
             <span
               className={`anim-fade-up pointer-events-none hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-semibold backdrop-blur-xl sm:inline-flex ${
                 isDarkUi
-                  ? 'border border-white/15 bg-black/35 text-white/80'
-                  : 'border border-white/60 bg-white/75 text-gray-500 shadow-lg shadow-gray-900/5'
+                  ? "border border-white/15 bg-black/35 text-white/80"
+                  : "border border-white/60 bg-white/75 text-gray-500 shadow-lg shadow-gray-900/5"
               }`}
             >
               <MousePointer2 className="h-3 w-3" />

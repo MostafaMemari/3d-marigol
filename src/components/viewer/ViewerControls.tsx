@@ -33,7 +33,7 @@ function BarButton({
       data-tip={tip}
       aria-label={label}
       aria-pressed={active}
-      className={`tip flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-all duration-200 active:scale-90 ${
+      className={`tip flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-all duration-200 active:scale-90 sm:h-10 sm:w-10 ${
         active
           ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20'
           : 'text-gray-500 hover:-translate-y-0.5 hover:bg-gray-100 hover:text-gray-900 hover:shadow-md'
@@ -62,7 +62,7 @@ export default function ViewerControls({
         <RotateCcw className={`${icon} transition-transform duration-300 hover:-rotate-90`} />
       </BarButton>
 
-      <div className="h-6 w-px shrink-0 bg-gray-200/80" />
+      <div className="hidden h-6 w-px shrink-0 bg-gray-200/80 sm:block" />
 
       <BarButton
         tip={autoRotate ? 'Pause rotation' : 'Auto-rotate'}
@@ -91,7 +91,7 @@ export default function ViewerControls({
         <SlidersHorizontal className={icon} />
       </BarButton>
 
-      <div className="h-6 w-px shrink-0 bg-gray-200/80" />
+      <div className="hidden h-6 w-px shrink-0 bg-gray-200/80 sm:block" />
 
       <BarButton tip="Save screenshot" label="Take screenshot" onClick={onScreenshot}>
         <Camera className={icon} />

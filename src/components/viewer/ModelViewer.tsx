@@ -343,7 +343,7 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
           maxDistance={14}
           maxPolarAngle={Math.PI / 2 + 0.08}
           autoRotate={spinning}
-          autoRotateSpeed={0.8}
+          autoRotateSpeed={1.4}
           enablePan
           enableZoom
           onStart={handleControlStart}
