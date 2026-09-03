@@ -1,11 +1,13 @@
-import { Camera, Grid3x3, Maximize, Pause, Play, RotateCcw } from 'lucide-react';
+import { Camera, Grid3x3, Maximize, Pause, Play, RotateCcw, SlidersHorizontal } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface Props {
   autoRotate: boolean;
   showGrid: boolean;
+  settingsOpen: boolean;
   onToggleRotate: () => void;
   onToggleGrid: () => void;
+  onToggleSettings: () => void;
   onReset: () => void;
   onFullscreen: () => void;
   onScreenshot: () => void;
@@ -45,8 +47,10 @@ function BarButton({
 export default function ViewerControls({
   autoRotate,
   showGrid,
+  settingsOpen,
   onToggleRotate,
   onToggleGrid,
+  onToggleSettings,
   onReset,
   onFullscreen,
   onScreenshot,
@@ -76,6 +80,15 @@ export default function ViewerControls({
         onClick={onToggleGrid}
       >
         <Grid3x3 className={icon} />
+      </BarButton>
+
+      <BarButton
+        tip="Scene settings"
+        label="Toggle scene settings"
+        active={settingsOpen}
+        onClick={onToggleSettings}
+      >
+        <SlidersHorizontal className={icon} />
       </BarButton>
 
       <div className="h-6 w-px bg-gray-200/80" />

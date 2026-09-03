@@ -24,3 +24,20 @@ export interface ViewerControlState {
   autoRotate: boolean;
   showGrid: boolean;
 }
+
+/* ---------- immersive scene ---------- */
+
+export type ScenePresetName = 'studio' | 'product' | 'dark' | 'wireframe';
+
+export type BackgroundOption = 'white' | 'gray' | 'dark' | 'transparent';
+
+export interface SceneSettings {
+  preset: ScenePresetName | 'custom';
+  shadows: boolean;
+  wireframe: boolean;
+  mainLight: number;
+  ambientLight: number;
+  lightColor: string;
+  exposure: number;
+  background: BackgroundOption;
+}

@@ -143,6 +143,55 @@ body {
   background-size: 22px 22px;
 }
 
+/* transparency checkerboard behind the canvas */
+.checker-bg {
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.07) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.07) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.07) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.07) 75%);
+  background-size: 28px 28px;
+  background-position: 0 0, 0 14px, 14px -14px, -14px 0;
+}
+
+/* scene settings sliders */
+.scene-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 5px;
+  border-radius: 99px;
+  background: linear-gradient(to right, #111827 var(--fill, 50%), #e5e7eb var(--fill, 50%));
+  outline: none;
+  cursor: pointer;
+}
+.scene-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 15px;
+  width: 15px;
+  border-radius: 99px;
+  background: #fff;
+  border: 2.5px solid #111827;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.3);
+  transition: transform 0.15s ease;
+}
+.scene-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.scene-slider::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border-radius: 99px;
+  background: #fff;
+  border: 2.5px solid #111827;
+  box-shadow: 0 2px 8px rgba(17, 24, 39, 0.3);
+}
+.scene-slider::-moz-range-track {
+  height: 5px;
+  border-radius: 99px;
+  background: #e5e7eb;
+}
+
 /* custom tooltip */
 .tip {
   position: relative;

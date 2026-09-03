@@ -84,7 +84,7 @@ export default function LoadingScreen({ progress, loadedBytes, totalBytes, model
         <Placeholder3D />
 
         <h2 className="mt-6 text-center text-[22px] font-bold tracking-tight text-gray-900 sm:text-2xl">
-          Preparing your 3D model
+          Loading model
         </h2>
         <p
           key={message}

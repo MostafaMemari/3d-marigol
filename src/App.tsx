@@ -1,80 +1,35 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
-import { Box, Cuboid, MousePointer2, Move3d, ZoomIn } from 'lucide-react';
+import { Box, Download, MousePointer2 } from 'lucide-react';
 import { useModelUrl } from './hooks/useModelUrl';
 import { useModelLoader } from './hooks/useModelLoader';
+import { useSceneSettings } from './hooks/useSceneSettings';
 import LoadingScreen from './components/viewer/LoadingScreen';
 import ErrorState from './components/viewer/ErrorState';
 import ViewerControls from './components/viewer/ViewerControls';
+import SettingsPanel from './components/viewer/SettingsPanel';
 import type { ModelViewerHandle } from './components/viewer/ModelViewer';
-import { APP_NAME, APP_TAGLINE, APP_TITLE, formatBytes } from './lib/constants';
+import { BACKGROUND_CSS, buildProductUrl } from './lib/constants';
 
 const ModelViewer = lazy(() => import('./components/viewer/ModelViewer'));
-
-function Header({ modelId }: { modelId: string | null }) {
-  return (
-    <header className="anim-fade-up sticky top-0 z-40 border-b border-gray-100 bg-white/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-500 shadow-lg shadow-indigo-600/25">
-            <Box className="h-5 w-5 text-white" strokeWidth={2.2} />
-          </div>
-          <div className="leading-tight">
-            <p className="text-[15px] font-bold tracking-tight text-gray-900">
-              {APP_NAME} <span className="font-medium text-gray-400">·</span>{' '}
-              <span className="font-semibold text-gray-600">{APP_TITLE}</span>
-            </p>
-            <p className="text-[12px] font-medium text-gray-400">{APP_TAGLINE}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {modelId ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 font-mono text-[12px] font-semibold text-gray-700">
-              <Cuboid className="h-3.5 w-3.5 text-indigo-500" />
-              #{modelId}
-            </span>
-          ) : (
-            <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[12px] font-semibold text-amber-700">
-              No model selected
-            </span>
-          )}
-          <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[12px] font-semibold text-emerald-700 sm:inline-flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Live
-          </span>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function HintPill({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200/80 bg-white px-3 py-1.5 text-[12px] font-medium text-gray-500 shadow-sm">
-      {icon}
-      {label}
-    </span>
-  );
-}
 
 export default function App() {
   const { id, modelUrl, isMissing } = useModelUrl();
   const loader = useModelLoader(isMissing ? null : modelUrl);
+  const { settings, applyPreset, update, reset: resetScene } = useSceneSettings();
   const viewerRef = useRef<ModelViewerHandle>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [spinEnabled, setSpinEnabled] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [modelReady, setModelReady] = useState(false);
   const [overlayGone, setOverlayGone] = useState(false);
 
-  // Reset reveal state whenever a new model starts loading
   useEffect(() => {
     setModelReady(false);
     setOverlayGone(false);
   }, [modelUrl]);
 
-  // After the 3D scene signals ready, keep the loader for a beat then fade it out
   useEffect(() => {
     if (!modelReady) return;
     const t = window.setTimeout(() => setOverlayGone(true), 750);
@@ -83,124 +38,149 @@ export default function App() {
 
   const handleReady = useCallback(() => setModelReady(true), []);
 
+  const toggleFullscreen = useCallback(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      void document.exitFullscreen().catch(() => undefined);
+      return;
+    }
+    if (el.requestFullscreen) void el.requestFullscreen().catch(() => undefined);
+  }, []);
+
   const showError = !isMissing && loader.status === 'error';
   const showCanvas = !isMissing && !showError && loader.blobUrl !== null;
   const loadingVisible = !isMissing && !showError && (!modelReady || !overlayGone);
+  const isDarkUi = settings.background === 'dark' || settings.background === 'transparent';
 
   return (
-    <div className="flex min-h-full flex-col bg-[#f7f7f8]">
-      <Header modelId={id} />
+    <div
+      ref={rootRef}
+      className="relative h-dvh w-full overflow-hidden"
+      style={{ background: BACKGROUND_CSS[settings.background] }}
+    >
+      {/* transparent-bg checkerboard */}
+      {settings.background === 'transparent' && (
+        <div className="checker-bg pointer-events-none absolute inset-0 opacity-60" />
+      )}
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-5 sm:px-6 sm:py-8">
-        {/* Viewer card */}
-        <section className="anim-fade-up stagger-1 relative overflow-hidden rounded-3xl border border-gray-200/70 bg-white shadow-[0_30px_80px_-30px_rgba(79,70,229,0.3)]">
-          {/* top gradient hairline */}
-          <div className="absolute inset-x-0 top-0 z-20 h-[3px] bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
-
-          <div className="relative h-[62vh] min-h-[420px] w-full sm:h-[68vh] lg:h-[70vh]">
-            {isMissing && (
-              <ErrorState kind="missing-id" modelId={null} onRetry={() => window.location.reload()} />
-            )}
-
-            {showError && (
-              <ErrorState
-                kind={loader.errorKind ?? 'network'}
+      {/* 3D canvas — the hero, fills the viewport */}
+      <div className="absolute inset-0">
+        {showCanvas && (
+          <div className={modelReady ? 'anim-viewer-in h-full w-full' : 'h-full w-full opacity-0'}>
+            <Suspense fallback={null}>
+              <ModelViewer
+                ref={viewerRef}
+                blobUrl={loader.blobUrl as string}
+                autoRotateEnabled={spinEnabled}
+                showGrid={showGrid}
+                settings={settings}
                 modelId={id}
-                onRetry={loader.retry}
+                onReady={handleReady}
               />
-            )}
-
-            {!isMissing && !showError && loader.blobUrl === null && (
-              <LoadingScreen
-                progress={loader.progress}
-                loadedBytes={loader.loadedBytes}
-                totalBytes={loader.totalBytes}
-                modelId={id}
-                leaving={false}
-              />
-            )}
-
-            {showCanvas && (
-              <div className={modelReady ? 'anim-viewer-in h-full w-full' : 'h-full w-full opacity-0'}>
-                <Suspense fallback={null}>
-                  <ModelViewer
-                    ref={viewerRef}
-                    blobUrl={loader.blobUrl as string}
-                    autoRotate={autoRotate}
-                    showGrid={showGrid}
-                    modelId={id}
-                    onReady={handleReady}
-                  />
-                </Suspense>
-              </div>
-            )}
-
-            {showCanvas && loadingVisible && (
-              <LoadingScreen
-                progress={modelReady ? 100 : loader.progress}
-                loadedBytes={loader.loadedBytes}
-                totalBytes={loader.totalBytes}
-                modelId={id}
-                leaving={modelReady}
-              />
-            )}
-
-            {/* floating top chips */}
-            {showCanvas && modelReady && (
-              <>
-                <div className="anim-fade-up stagger-2 pointer-events-none absolute top-4 left-4 z-20 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/85 px-3 py-1.5 text-[12px] font-semibold text-gray-700 shadow-lg shadow-gray-900/5 backdrop-blur-xl">
-                    <MousePointer2 className="h-3.5 w-3.5 text-indigo-500" />
-                    Drag to explore
-                  </span>
-                </div>
-                <div className="anim-fade-up stagger-3 pointer-events-none absolute top-4 right-4 z-20 hidden sm:block">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/85 px-3 py-1.5 font-mono text-[11.5px] font-medium text-gray-500 shadow-lg shadow-gray-900/5 backdrop-blur-xl tabular-nums">
-                    {loader.totalBytes ? formatBytes(loader.totalBytes) : 'GLB'} · 60 FPS
-                  </span>
-                </div>
-              </>
-            )}
-
-            {/* floating control toolbar */}
-            {showCanvas && (
-              <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center px-4">
-                <ViewerControls
-                  autoRotate={autoRotate}
-                  showGrid={showGrid}
-                  onToggleRotate={() => setAutoRotate((v) => !v)}
-                  onToggleGrid={() => setShowGrid((v) => !v)}
-                  onReset={() => viewerRef.current?.resetCamera()}
-                  onFullscreen={() => viewerRef.current?.enterFullscreen()}
-                  onScreenshot={() => viewerRef.current?.capture()}
-                />
-              </div>
-            )}
+            </Suspense>
           </div>
-        </section>
+        )}
+      </div>
 
-        {/* helper strip */}
-        <div className="anim-fade-up stagger-2 mt-4 flex flex-wrap items-center justify-center gap-2 sm:justify-between">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <HintPill icon={<MousePointer2 className="h-3.5 w-3.5 text-indigo-500" />} label="Drag to rotate" />
-            <HintPill icon={<ZoomIn className="h-3.5 w-3.5 text-violet-500" />} label="Scroll to zoom" />
-            <HintPill icon={<Move3d className="h-3.5 w-3.5 text-fuchsia-500" />} label="Right-drag to pan" />
-          </div>
-          <p className="hidden font-mono text-[11.5px] text-gray-400 lg:block">
-            marigol · arvan object storage · webgl
-          </p>
-        </div>
-      </main>
+      {/* loading + error overlays */}
+      {!isMissing && !showError && loader.blobUrl === null && (
+        <LoadingScreen
+          progress={loader.progress}
+          loadedBytes={loader.loadedBytes}
+          totalBytes={loader.totalBytes}
+          modelId={id}
+          leaving={false}
+        />
+      )}
+      {showCanvas && loadingVisible && loader.blobUrl !== null && (
+        <LoadingScreen
+          progress={modelReady ? 100 : loader.progress}
+          loadedBytes={loader.loadedBytes}
+          totalBytes={loader.totalBytes}
+          modelId={id}
+          leaving={modelReady}
+        />
+      )}
+      {isMissing && (
+        <ErrorState kind="missing-id" modelId={null} onRetry={() => window.location.reload()} />
+      )}
+      {showError && (
+        <ErrorState kind={loader.errorKind ?? 'network'} modelId={id} onRetry={loader.retry} />
+      )}
 
-      <footer className="border-t border-gray-100 bg-white/60">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-1 px-4 py-4 text-[12px] text-gray-400 sm:flex-row sm:px-6">
-          <p>
-            <span className="font-semibold text-gray-500">{APP_NAME} Viewer</span> — premium 3D product
-            preview
-          </p>
-          <p className="font-mono text-[11px]">?id=13994 · noindex · cloudflare pages</p>
+      {/* top floating bar */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between gap-3 p-3 sm:p-4">
+        <div className="anim-fade-up pointer-events-auto flex items-center gap-2.5 rounded-2xl border border-white/50 bg-white/75 py-2 pr-4 pl-2.5 shadow-lg shadow-gray-900/8 backdrop-blur-xl">
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-500 shadow-md shadow-indigo-600/25">
+            <Box className="h-4 w-4 text-white" strokeWidth={2.4} />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-[13.5px] font-bold tracking-tight text-gray-900">
+              Marigol 3D
+            </span>
+            <span className="block font-mono text-[10.5px] font-medium text-gray-400">
+              {id ? `#${id}` : 'viewer'}
+            </span>
+          </span>
         </div>
-      </footer>
+
+        <div className="anim-fade-up stagger-1 pointer-events-auto flex items-center gap-2">
+          {id && (
+            <a
+              href={buildProductUrl(id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 rounded-2xl bg-gray-900 px-4 py-2.5 text-[13.5px] font-bold text-white shadow-xl shadow-gray-900/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-indigo-600/35 active:translate-y-0"
+            >
+              <Download className="h-4 w-4 transition-transform duration-200 group-hover:translate-y-0.5" />
+              <span className="hidden sm:inline">Download</span>
+              <span className="sm:hidden">Get</span>
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* right floating settings panel */}
+      {showCanvas && (
+        <SettingsPanel
+          settings={settings}
+          open={settingsOpen}
+          onApplyPreset={applyPreset}
+          onUpdate={update}
+          onResetScene={resetScene}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
+
+      {/* bottom floating toolbar */}
+      {showCanvas && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-40 flex flex-col items-center gap-2.5 px-4 sm:bottom-5">
+          {modelReady && (
+            <span
+              className={`anim-fade-up pointer-events-none hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-semibold backdrop-blur-xl sm:inline-flex ${
+                isDarkUi
+                  ? 'border border-white/15 bg-black/35 text-white/80'
+                  : 'border border-white/60 bg-white/75 text-gray-500 shadow-lg shadow-gray-900/5'
+              }`}
+            >
+              <MousePointer2 className="h-3 w-3" />
+              Drag to rotate · Scroll to zoom · Right-drag to pan
+            </span>
+          )}
+          <ViewerControls
+            autoRotate={spinEnabled}
+            showGrid={showGrid}
+            settingsOpen={settingsOpen}
+            onToggleRotate={() => setSpinEnabled((v) => !v)}
+            onToggleGrid={() => setShowGrid((v) => !v)}
+            onToggleSettings={() => setSettingsOpen((v) => !v)}
+            onReset={() => viewerRef.current?.resetCamera()}
+            onFullscreen={toggleFullscreen}
+            onScreenshot={() => viewerRef.current?.capture()}
+          />
+        </div>
+      )}
     </div>
   );
 }
