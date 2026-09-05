@@ -14,6 +14,18 @@ export const APP_NAME = 'Marigol';
 export const APP_TITLE = '3D Product Viewer';
 export const APP_TAGLINE = 'Interactive product preview';
 
+/** Brand palette — single source of truth for the pink/red identity. */
+export const BRAND_COLORS = {
+  from: '#b80045',
+  via: '#ce004f',
+  to: '#ff4d8d',
+  soft: '#fde6ee',
+  mist: '#ffd6e5',
+  track: '#fde8ef',
+} as const;
+
+export const BRAND_GRADIENT_CSS = `linear-gradient(135deg, ${BRAND_COLORS.from}, ${BRAND_COLORS.via}, ${BRAND_COLORS.to})`;
+
 /** Resume auto-rotation this long after the user stops interacting. */
 export const AUTOROTATE_RESUME_MS = 3000;
 

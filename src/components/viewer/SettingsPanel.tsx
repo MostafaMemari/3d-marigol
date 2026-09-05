@@ -178,7 +178,7 @@ export default function SettingsPanel({
             })}
           </div>
           {settings.preset === 'custom' && (
-            <p className="mt-1.5 px-1 text-[11px] font-medium text-indigo-500">
+            <p className="mt-1.5 px-1 text-[11px] font-medium text-brand">
               Custom mix — pick a preset to restart
             </p>
           )}

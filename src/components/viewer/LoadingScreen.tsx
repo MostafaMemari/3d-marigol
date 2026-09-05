@@ -19,7 +19,7 @@ function Ring({ progress }: { progress: number | null }) {
   return (
     <div className="relative h-28 w-28">
       <svg viewBox="0 0 128 128" className="h-full w-full -rotate-90">
-        <circle cx="64" cy="64" r={R} fill="none" stroke="#eef0ff" strokeWidth="10" />
+        <circle cx="64" cy="64" r={R} fill="none" stroke="#fde8ef" strokeWidth="10" />
         <circle
           cx="64"
           cy="64"
@@ -35,15 +35,15 @@ function Ring({ progress }: { progress: number | null }) {
         />
         <defs>
           <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#6366f1" />
-            <stop offset="55%" stopColor="#8b5cf6" />
-            <stop offset="100%" stopColor="#d946ef" />
+            <stop offset="0%" stopColor="#b80045" />
+            <stop offset="55%" stopColor="#ce004f" />
+            <stop offset="100%" stopColor="#ff4d8d" />
           </linearGradient>
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         {progress === null ? (
-          <Loader2 className="h-6 w-6 animate-spin text-indigo-600" strokeWidth={2.4} />
+          <Loader2 className="h-6 w-6 animate-spin text-brand" strokeWidth={2.4} />
         ) : (
           <span className="font-mono text-[22px] font-semibold tabular-nums text-gray-900">
             {Math.floor(progress)}
@@ -68,15 +68,15 @@ export default function LoadingScreen({ progress, loadedBytes, totalBytes, model
     >
       {/* ambient background */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-indigo-200/50 via-violet-200/40 to-fuchsia-200/50 blur-3xl" />
+        <div className="absolute -top-24 left-1/2 h-72 w-[36rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-from/15 via-brand/10 to-brand-to/15 blur-3xl" />
         <div className="viewer-dots absolute inset-0 opacity-60 [mask-image:radial-gradient(ellipse_60%_55%_at_50%_40%,black,transparent)]" />
       </div>
 
       <div className="anim-fade-up relative flex flex-col items-center">
-        <div className="mb-2 flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50/80 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide text-indigo-700">
+        <div className="mb-2 flex items-center gap-2 rounded-full border border-brand-to/25 bg-brand-to/10 px-3.5 py-1.5 text-[12px] font-semibold tracking-wide text-brand-from">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-500 opacity-60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-600" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-from" />
           </span>
           {modelId ? `MODEL #${modelId}` : 'PREPARING 3D MODEL'}
         </div>
@@ -115,12 +115,12 @@ export default function LoadingScreen({ progress, loadedBytes, totalBytes, model
         <div className="mt-6 w-64 sm:w-80">
           {pct === null ? (
             <div className="shimmer-track h-2.5 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full w-2/5 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500" />
+              <div className="h-full w-2/5 rounded-full bg-gradient-to-r from-brand-from via-brand to-brand-to" />
             </div>
           ) : (
             <div className="h-2.5 overflow-hidden rounded-full bg-gray-100">
               <div
-                className="shimmer-track h-full rounded-full bg-gradient-to-r from-indigo-600 via-violet-500 to-fuchsia-500 transition-[width] duration-500 ease-out"
+                className="shimmer-track h-full rounded-full bg-gradient-to-r from-brand-from via-brand to-brand-to transition-[width] duration-500 ease-out"
                 style={{ width: `${pct}%` }}
               />
             </div>

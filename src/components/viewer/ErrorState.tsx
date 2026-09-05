@@ -31,12 +31,12 @@ export default function ErrorState({ kind, modelId, onRetry }: Props) {
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-white px-6">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-28 left-1/2 h-80 w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-rose-100/70 via-indigo-100/60 to-violet-100/70 blur-3xl" />
+        <div className="absolute -top-28 left-1/2 h-80 w-[42rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-brand-soft/70 via-brand-mist/60 to-brand-to/30 blur-3xl" />
         <div className="viewer-dots absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_60%_55%_at_50%_40%,black,transparent)]" />
       </div>
 
-      <div className="anim-fade-up relative w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-[0_24px_70px_-24px_rgba(79,70,229,0.25)] sm:p-10">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 shadow-lg shadow-rose-500/25">
+      <div className="anim-fade-up relative w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-[0_24px_70px_-24px_rgba(206,0,79,0.25)] sm:p-10">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-from via-brand to-brand-to shadow-lg shadow-brand/25">
           {kind === 'network' ? (
             <AlertTriangle className="h-7 w-7 text-white" strokeWidth={2.2} />
           ) : (
@@ -56,7 +56,7 @@ export default function ErrorState({ kind, modelId, onRetry }: Props) {
         <div className="mt-7 flex flex-col gap-2.5 sm:flex-row sm:justify-center">
           <button
             onClick={onRetry}
-            className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/15 transition-all duration-200 hover:-translate-y-0.5 hover:bg-indigo-600 hover:shadow-indigo-600/30 active:translate-y-0"
+            className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-gray-900/15 transition-all duration-200 hover:-translate-y-0.5 hover:bg-brand hover:shadow-brand/30 active:translate-y-0"
           >
             <RotateCcw className="h-4 w-4 transition-transform duration-300 group-hover:-rotate-180" />
             Try again
