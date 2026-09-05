@@ -4,6 +4,9 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Relative asset paths: the same dist/ works at a domain root
+  // (Cloudflare Pages) and under a sub-path (GitHub Pages project sites).
+  base: './',
   plugins: [react(), tailwindcss()],
   build: {
     target: 'es2020',

@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
-import { Box, Download, MousePointer2 } from "lucide-react";
+import { Download, MousePointer2 } from "lucide-react";
 import { useModelUrl } from "./hooks/useModelUrl";
 import { useModelLoader } from "./hooks/useModelLoader";
 import { useSceneSettings } from "./hooks/useSceneSettings";
@@ -104,7 +104,7 @@ export default function App() {
         <div className="anim-fade-up pointer-events-auto flex items-center gap-2.5 rounded-2xl border border-white/50 bg-white/75 py-2 pr-4 pl-2.5 shadow-lg shadow-gray-900/8 backdrop-blur-xl">
           <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-500 shadow-md shadow-indigo-600/25">
             {/* <Box className="h-4 w-4 text-white" strokeWidth={2.4} /> */}
-            <img src="/logo.webp" className="h-4 w-4 text-white" />
+            <img src="./logo.webp" alt="Marigol" className="h-4 w-4 text-white" />
           </span>
           <span className="leading-tight">
             <span className="block text-[13.5px] font-bold tracking-tight text-gray-900">Marigol 3D</span>

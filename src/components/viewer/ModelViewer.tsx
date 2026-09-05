@@ -113,8 +113,11 @@ function FramedModel({
           });
         }
       });
+      // Drop the parsed GLB from the loader cache so a later visit re-parses
+      // cleanly instead of reusing disposed GPU resources.
+      useGLTF.clear(url);
     };
-  }, [normalized]);
+  }, [normalized, url]);
 
   return <primitive object={normalized} />;
 }
@@ -133,6 +136,20 @@ function ExposureSetter({ value }: { value: number }) {
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.toneMappingExposure = value;
   }, [gl, value]);
+  return null;
+}
+
+function EnvDisposer() {
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    return () => {
+      const env = scene.environment;
+      if (env) {
+        (env as THREE.Texture | null)?.dispose?.();
+        scene.environment = null;
+      }
+    };
+  }, [scene]);
   return null;
 }
 
@@ -257,6 +274,7 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
       >
         <CaptureBridge store={glRef} />
         <ExposureSetter value={settings.exposure} />
+        <EnvDisposer />
         {canvasColor && <color attach="background" args={[canvasColor]} />}
         {(bg === 'white' || bg === 'gray') && (
           <fog attach="fog" args={[canvasColor as string, 12, 26]} />

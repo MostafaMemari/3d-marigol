@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marigol Viewer — 3D Product Preview</title>
+    <script>
+      // GitHub Pages SPA fallback: GH Pages serves this 404 page for unknown
+      // deep links (e.g. /viewer?id=13994). Bounce back to the viewer root
+      // preserving the full query string, where the app boots from ?id=.
+      (function () {
+        var parts = window.location.pathname.split('/').filter(Boolean);
+        // Drop the last segment if it looks like a route (not a file).
+        if (parts.length && parts[parts.length - 1].indexOf('.') === -1) parts.pop();
+        var root = window.location.origin + '/' + (parts.length ? parts.join('/') + '/' : '');
+        var target = root + window.location.search + window.location.hash;
+        window.location.replace(target);
+      })();
+    </script>
+    <style>
+      html, body { margin: 0; background: #f4f4f5; }
+      body {
+        display: flex; align-items: center; justify-content: center;
+        height: 100vh; font-family: system-ui, sans-serif; color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Opening 3D viewer…</p>
+  </body>
+</html>
