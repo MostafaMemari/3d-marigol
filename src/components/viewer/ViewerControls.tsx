@@ -11,6 +11,8 @@ interface Props {
   onReset: () => void;
   onFullscreen: () => void;
   onScreenshot: () => void;
+  /** Hidden for asset types without a ground grid (material preview). */
+  showGridControl?: boolean;
 }
 
 function BarButton({
@@ -54,6 +56,7 @@ export default function ViewerControls({
   onReset,
   onFullscreen,
   onScreenshot,
+  showGridControl = true,
 }: Props) {
   const icon = 'h-[18px] w-[18px]';
   return (
@@ -73,14 +76,16 @@ export default function ViewerControls({
         {autoRotate ? <Pause className={icon} /> : <Play className={icon} />}
       </BarButton>
 
-      <BarButton
-        tip={showGrid ? 'Hide grid' : 'Show grid'}
-        label="Toggle grid"
-        active={showGrid}
-        onClick={onToggleGrid}
-      >
-        <Grid3x3 className={icon} />
-      </BarButton>
+      {showGridControl && (
+        <BarButton
+          tip={showGrid ? 'Hide grid' : 'Show grid'}
+          label="Toggle grid"
+          active={showGrid}
+          onClick={onToggleGrid}
+        >
+          <Grid3x3 className={icon} />
+        </BarButton>
+      )}
 
       <BarButton
         tip="Scene settings"

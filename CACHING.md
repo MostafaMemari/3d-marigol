@@ -5,7 +5,8 @@ analytics, no tracking, no third-party calls. At runtime the only network
 requests are:
 
 1. The app shell (HTML/CSS/JS, same origin, content-hashed by Vite).
-2. Exactly one GLB download from Arvan Object Storage per model view.
+2. Exactly one asset download from Arvan Object Storage per view — the GLB
+   for a model, or the ZIP package for a material.
 
 ## Static assets (Cloudflare Pages)
 
@@ -36,8 +37,29 @@ The model is fetched **once** per view:
   `Cache-Control: public, max-age=31536000, immutable` since model URLs are
   content-addressed by ID (`{id}.glb` changes only when the model changes).
 
+## Material package (Arvan Object Storage)
+
+Material views download one ZIP (`{id}.zip`) and unpack it **entirely in the
+browser** — no upload, no server-side processing:
+
+- `useMaterialLoader` streams the archive through the same download path as
+  models (one request, byte-level progress, abort on unmount), then hands the
+  blob to `extractMaterialPackage`.
+- The ZIP is inflated in the browser with **fflate**, which is loaded as a
+  lazy chunk (`dist/assets/browser-*.js`) only when a material is opened —
+  model views never download it.
+- `materialMaps.ts` maps file names to PBR channels; only the images that
+  match a channel are decoded into GPU textures. Unclaimed images (e.g. the
+  extra variants of a photo set) are never decoded, so a 10 MB package with
+  ten photos still costs two texture uploads.
+- Same caching recommendation as models: material URLs are content-addressed
+  by ID, so `immutable` is safe once the package is published.
+
 ## Memory
 
 - On unmount the viewer traverses the cloned scene and disposes geometries,
   materials, and textures, drops the `useGLTF` cache entry, revokes the blob
   URL, and disposes the PMREM environment — no GPU/CPU leaks when leaving.
+- Material packages release their textures, per-image object URLs and
+  preview geometry through `MaterialPackage.dispose()` when the loader
+  unmounts or a retry replaces the package.

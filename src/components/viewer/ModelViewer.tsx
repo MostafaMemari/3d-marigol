@@ -8,12 +8,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { MutableRefObject } from 'react';
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { ContactShadows, Grid, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { CaptureBridge, ExposureSetter, RoomEnvironmentMap } from './SceneBridges';
 import {
   AUTOROTATE_RESUME_MS,
   BACKGROUND_CANVAS_COLOR,
@@ -21,13 +20,9 @@ import {
   CAMERA_DEFAULT_POSITION,
   TARGET_MODEL_SIZE,
 } from '../../lib/constants';
-import type { SceneSettings } from '../../types/model';
+import type { SceneSettings, ViewerHandle } from '../../types/model';
 
-export interface ModelViewerHandle {
-  resetCamera: () => void;
-  capture: () => void;
-  enterFullscreen: () => void;
-}
+export type ModelViewerHandle = ViewerHandle;
 
 interface Props {
   blobUrl: string;
@@ -120,37 +115,6 @@ function FramedModel({
   }, [normalized, url]);
 
   return <primitive object={normalized} />;
-}
-
-function CaptureBridge({ store }: { store: MutableRefObject<THREE.WebGLRenderer | null> }) {
-  const gl = useThree((s) => s.gl);
-  useEffect(() => {
-    store.current = gl as unknown as THREE.WebGLRenderer;
-  }, [gl, store]);
-  return null;
-}
-
-function ExposureSetter({ value }: { value: number }) {
-  const gl = useThree((s) => s.gl);
-  useEffect(() => {
-    gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = value;
-  }, [gl, value]);
-  return null;
-}
-
-function EnvDisposer() {
-  const scene = useThree((s) => s.scene);
-  useEffect(() => {
-    return () => {
-      const env = scene.environment;
-      if (env) {
-        (env as THREE.Texture | null)?.dispose?.();
-        scene.environment = null;
-      }
-    };
-  }, [scene]);
-  return null;
 }
 
 const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
@@ -264,17 +228,13 @@ const ModelViewer = forwardRef<ModelViewerHandle, Props>(function ModelViewer(
         dpr={[1, 2]}
         camera={{ position: CAMERA_DEFAULT_POSITION, fov: CAMERA_DEFAULT_FOV, near: 0.1, far: 100 }}
         gl={{ antialias: true, alpha: bg === 'transparent', preserveDrawingBuffer: true }}
-        onCreated={({ camera, gl, scene }) => {
+        onCreated={({ camera }) => {
           cameraRef.current = camera as THREE.PerspectiveCamera;
-          const pmrem = new THREE.PMREMGenerator(gl);
-          scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-          scene.environmentIntensity = 0.55;
-          pmrem.dispose();
         }}
       >
         <CaptureBridge store={glRef} />
         <ExposureSetter value={settings.exposure} />
-        <EnvDisposer />
+        <RoomEnvironmentMap />
         {canvasColor && <color attach="background" args={[canvasColor]} />}
         {(bg === 'white' || bg === 'gray') && (
           <fog attach="fog" args={[canvasColor as string, 12, 26]} />

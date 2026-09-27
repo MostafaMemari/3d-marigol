@@ -1,6 +1,15 @@
 export type ViewerPhase = 'missing' | 'loading' | 'ready' | 'error';
 
-export type ModelErrorKind = 'missing-id' | 'not-found' | 'network';
+/** Asset families the viewer can render, selected with `?type=`. */
+export type AssetType = 'model' | 'material';
+
+export type ModelErrorKind =
+  | 'missing-id'
+  | 'not-found'
+  | 'network'
+  /* material packages only */
+  | 'bad-package'
+  | 'empty-package';
 
 export interface ModelError {
   kind: ModelErrorKind;
@@ -23,6 +32,13 @@ export interface LoaderState {
 export interface ViewerControlState {
   autoRotate: boolean;
   showGrid: boolean;
+}
+
+/** Imperative actions every viewer canvas exposes to the shell (App). */
+export interface ViewerHandle {
+  resetCamera: () => void;
+  capture: () => void;
+  enterFullscreen: () => void;
 }
 
 /* ---------- immersive scene ---------- */

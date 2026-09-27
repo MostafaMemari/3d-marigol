@@ -1,32 +1,69 @@
-import { AlertTriangle, CloudOff, FileQuestion, PackageSearch, RotateCcw } from 'lucide-react';
+import {
+  AlertTriangle,
+  CloudOff,
+  FileArchive,
+  FileQuestion,
+  ImageOff,
+  PackageSearch,
+  RotateCcw,
+} from 'lucide-react';
 import type { ModelErrorKind } from '../../types/model';
 
 interface Props {
   kind: ModelErrorKind;
   modelId: string | null;
   onRetry: () => void;
+  /** Wording for asset types other than models; models keep the default copy. */
+  copy?: Partial<Record<ModelErrorKind, Partial<ErrorCopy>>>;
 }
 
-const COPY: Record<ModelErrorKind, { icon: typeof FileQuestion; title: string; body: string }> = {
+interface ErrorCopy {
+  title: string;
+  body: string;
+  footer: string;
+}
+
+const FOOTER = 'If the problem persists, the model file may be unavailable on storage.';
+
+const COPY: Record<ModelErrorKind, ErrorCopy & { icon: typeof FileQuestion }> = {
   'missing-id': {
     icon: PackageSearch,
     title: 'Model ID is missing',
     body: 'No product was specified. Add a model ID to the URL, for example ?id=13994, then reload the viewer.',
+    footer: FOOTER,
   },
   'not-found': {
     icon: FileQuestion,
     title: 'Model not found',
     body: 'We could not find a 3D model with this ID. It may have been removed or the link may be incorrect.',
+    footer: FOOTER,
   },
   network: {
     icon: CloudOff,
     title: 'Unable to load this 3D model',
     body: 'Something interrupted the download. Check your connection and try again — your model is safe.',
+    footer: FOOTER,
+  },
+  'bad-package': {
+    icon: FileArchive,
+    title: 'Material package is invalid',
+    body: 'This file could not be opened as a ZIP archive. Re-export the material package and try again.',
+    footer: 'If the problem persists, the package may be corrupted on storage.',
+  },
+  'empty-package': {
+    icon: ImageOff,
+    title: 'No textures in this package',
+    body: 'The archive opened, but it contains no readable image files. Expected a ZIP with textures such as wood_basecolor.jpg, wood_normal.jpg or wood_roughness.jpg.',
+    footer: 'If the problem persists, the package may be missing its texture files.',
   },
 };
 
-export default function ErrorState({ kind, modelId, onRetry }: Props) {
-  const { icon: Icon, title, body } = COPY[kind];
+export default function ErrorState({ kind, modelId, onRetry, copy }: Props) {
+  const base = COPY[kind];
+  const Icon = base.icon;
+  const title = copy?.[kind]?.title ?? base.title;
+  const body = copy?.[kind]?.body ?? base.body;
+  const footer = copy?.[kind]?.footer ?? base.footer;
 
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-white px-6">
@@ -69,9 +106,7 @@ export default function ErrorState({ kind, modelId, onRetry }: Props) {
           </a>
         </div>
 
-        <p className="mt-6 text-[11.5px] text-gray-400">
-          If the problem persists, the model file may be unavailable on storage.
-        </p>
+        <p className="mt-6 text-[11.5px] text-gray-400">{footer}</p>
       </div>
     </div>
   );

@@ -1,4 +1,46 @@
-# React + TypeScript + Vite
+# Marigol 3D viewer
+
+Static React + TypeScript + Vite viewer for the assets on
+`s3.ir-thr-at1.arvanstorage.ir/marigol/`. Everything is client side: one
+download per view, no backend, no tracking.
+
+## URLs
+
+| URL                        | Renders                                         |
+| -------------------------- | ----------------------------------------------- |
+| `/?id=14257`               | GLB model (default, unchanged)                  |
+| `/?type=model&id=14257`    | Same, explicit                                  |
+| `/?type=material&id=14768` | Material package (`{id}.zip`) on a PBR preview  |
+
+`?type=` is optional and only `material` changes the behaviour; anything else
+stays on the model path.
+
+## Material packages
+
+A material ZIP is inflated in the browser (fflate) and file names are matched
+to PBR channels:
+
+| Channel           | Filename keywords                        |
+| ----------------- | ---------------------------------------- |
+| Base color        | albedo, diffuse, basecolor, base, color  |
+| Normal            | normal, normalmap                        |
+| Roughness         | roughness, rough                         |
+| Metallic          | metallic, metalness, metal               |
+| Ambient occlusion | ao, ambient, ambientocclusion, occlusion |
+| Height / bump     | height, bump, displacement, displace     |
+
+Keywords match whole words, so `wood_base_color`, `wood_normal_map` and
+folder layouts such as `normal/wood.jpg` all resolve. Packages that do not
+follow PBR naming (photo sets like `STONE 01.jpg` + `STONE 01 BUMP.jpg`)
+still preview: the first unclaimed JPEG becomes the base colour and its
+`BUMP` sibling the height map, and the remaining images are reported in the
+settings panel instead of being decoded.
+
+See [CACHING.md](./CACHING.md) for the runtime request and memory strategy.
+
+---
+
+## Tooling notes
 
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 

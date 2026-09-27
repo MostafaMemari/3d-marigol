@@ -1,5 +1,6 @@
 import { Loader2 } from 'lucide-react';
 import { formatBytes, getLoadingMessage } from '../../lib/constants';
+import type { AssetType } from '../../types/model';
 import Placeholder3D from './Placeholder3D';
 
 interface Props {
@@ -8,6 +9,8 @@ interface Props {
   totalBytes: number | null;
   modelId: string | null;
   leaving: boolean;
+  /** Asset being loaded — only changes the wording, not the layout. */
+  assetType?: AssetType;
 }
 
 function Ring({ progress }: { progress: number | null }) {
@@ -55,9 +58,17 @@ function Ring({ progress }: { progress: number | null }) {
   );
 }
 
-export default function LoadingScreen({ progress, loadedBytes, totalBytes, modelId, leaving }: Props) {
-  const message = progress === 100 ? 'Ready' : getLoadingMessage(progress);
+export default function LoadingScreen({
+  progress,
+  loadedBytes,
+  totalBytes,
+  modelId,
+  leaving,
+  assetType = 'model',
+}: Props) {
+  const message = progress === 100 ? 'Ready' : getLoadingMessage(progress, assetType);
   const pct = progress === null ? null : Math.min(100, Math.max(0, progress));
+  const label = assetType === 'material' ? 'material' : 'model';
 
   return (
     <div
@@ -78,13 +89,13 @@ export default function LoadingScreen({ progress, loadedBytes, totalBytes, model
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-from" />
           </span>
-          {modelId ? `MODEL #${modelId}` : 'PREPARING 3D MODEL'}
+          {modelId ? `${label.toUpperCase()} #${modelId}` : `PREPARING ${label.toUpperCase()}`}
         </div>
 
         <Placeholder3D />
 
         <h2 className="mt-6 text-center text-[22px] font-bold tracking-tight text-gray-900 sm:text-2xl">
-          Loading model
+          Loading {label}
         </h2>
         <p
           key={message}

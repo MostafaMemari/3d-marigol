@@ -1,4 +1,7 @@
+import type { ReactNode } from 'react';
 import { Aperture, Lightbulb, Moon, Package, RotateCcw, Scan, X } from 'lucide-react';
+import SliderRow from '../ui/SliderRow';
+import Toggle from '../ui/Toggle';
 import { BACKGROUND_OPTIONS, PRESET_ORDER, SCENE_PRESETS } from '../../lib/constants';
 import type { BackgroundOption, ScenePresetName, SceneSettings } from '../../types/model';
 
@@ -9,6 +12,10 @@ interface Props {
   onUpdate: (patch: Partial<SceneSettings>) => void;
   onResetScene: () => void;
   onClose: () => void;
+  /** Panel heading — material preview labels it after its own controls. */
+  title?: string;
+  /** Extra sections rendered above the scene settings. */
+  children?: ReactNode;
 }
 
 const PRESET_META: Record<ScenePresetName, { icon: typeof Scan; hint: string }> = {
@@ -25,82 +32,7 @@ const BG_SWATCH: Record<BackgroundOption, string> = {
   transparent: 'conic-gradient(#cbd5e1 25%, #ffffff 0 50%, #cbd5e1 0 75%, #ffffff 0)',
 };
 
-function Toggle({
-  label,
-  icon,
-  checked,
-  onChange,
-}: {
-  label: string;
-  icon: React.ReactNode;
-  checked: boolean;
-  onChange: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onChange}
-      aria-pressed={checked}
-      className="flex w-full cursor-pointer items-center justify-between rounded-xl px-1 py-1.5 transition-colors hover:bg-gray-100/70"
-    >
-      <span className="flex items-center gap-2 text-[13px] font-medium text-gray-700">
-        <span className="text-gray-400">{icon}</span>
-        {label}
-      </span>
-      <span
-        className={`relative h-[22px] w-[38px] rounded-full transition-colors duration-200 ${
-          checked ? 'bg-gray-900' : 'bg-gray-300'
-        }`}
-      >
-        <span
-          className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-all duration-200 ${
-            checked ? 'left-[19px]' : 'left-[3px]'
-          }`}
-        />
-      </span>
-    </button>
-  );
-}
-
-function SliderRow({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <label className="block px-1 py-1">
-      <span className="mb-1.5 flex items-center justify-between text-[13px] font-medium text-gray-700">
-        {label}
-        <span className="rounded-md bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-gray-600 tabular-nums">
-          {value.toFixed(2)}
-        </span>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="scene-slider w-full"
-        style={{ ['--fill' as string]: `${((value - min) / (max - min)) * 100}%` }}
-        aria-label={label}
-      />
-    </label>
-  );
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children }: { children: ReactNode }) {
   return (
     <p className="px-1 text-[10.5px] font-bold tracking-[0.14em] text-gray-400 uppercase">
       {children}
@@ -115,6 +47,8 @@ export default function SettingsPanel({
   onUpdate,
   onResetScene,
   onClose,
+  title = 'Scene Settings',
+  children,
 }: Props) {
   return (
     <aside
@@ -126,7 +60,7 @@ export default function SettingsPanel({
       aria-hidden={!open}
     >
       <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-        <p className="text-[13.5px] font-bold tracking-tight text-gray-900">Scene Settings</p>
+        <p className="text-[13.5px] font-bold tracking-tight text-gray-900">{title}</p>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -149,6 +83,8 @@ export default function SettingsPanel({
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3.5">
+        {children}
+
         <div>
           <SectionTitle>Preset</SectionTitle>
           <div className="mt-2 grid grid-cols-2 gap-1.5">
