@@ -45,6 +45,9 @@ export const MATERIAL_AUTOROTATE_SPEED = 1.1;
 
 export const MATERIAL_SHAPES: MaterialShape[] = ['sphere', 'cube', 'plane'];
 
+/** How long the post-pick material card lingers before it steps aside. */
+export const MATERIAL_DETAILS_TIMEOUT = 5200;
+
 export const MATERIAL_TILE_RANGE = { min: 1, max: 8, step: 1 } as const;
 export const MATERIAL_RELIEF_RANGE = { min: 0, max: 2, step: 0.05 } as const;
 

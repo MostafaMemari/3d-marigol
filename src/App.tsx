@@ -9,8 +9,9 @@ import { useSceneSettings } from "./hooks/useSceneSettings";
 import LoadingScreen from "./components/viewer/LoadingScreen";
 import ErrorState from "./components/viewer/ErrorState";
 import ViewerControls from "./components/viewer/ViewerControls";
-import SettingsPanel from "./components/viewer/SettingsPanel";
+import SettingsDrawer from "./components/layout/SettingsDrawer";
 import MaterialControls from "./components/viewer/MaterialControls";
+import MaterialSwitcher from "./components/viewer/MaterialSwitcher";
 import type { ViewerHandle } from "./types/model";
 import type { MaterialVariant } from "./types/material";
 import { BACKGROUND_CSS, buildProductUrl, getInteractionHint } from "./lib/constants";
@@ -187,12 +188,16 @@ export default function App() {
           </span>
           <span className="leading-tight">
             <span className="block text-[13.5px] font-bold tracking-tight text-gray-900">Marigol 3D</span>
-            <span className="block font-mono text-[10.5px] font-medium text-gray-400">{id ? `#${id}` : "viewer"}</span>
-            {isMaterial && (
-              <span className="mt-0.5 inline-block rounded-full bg-brand-to/15 px-1.5 py-px text-[9px] font-bold tracking-[0.12em] text-brand-from uppercase">
-                Material
+            <span className="mt-0.5 flex items-center gap-1.5">
+              {isMaterial && (
+                <span className="rounded-full bg-brand-to/15 px-1.5 py-px text-[9px] font-bold tracking-[0.12em] text-brand-from uppercase">
+                  Material
+                </span>
+              )}
+              <span className="font-mono text-[10.5px] font-medium text-gray-400">
+                {id ? `#${id}` : "viewer"}
               </span>
-            )}
+            </span>
           </span>
         </div>
 
@@ -212,36 +217,43 @@ export default function App() {
         </div>
       </div>
 
-      {/* right floating settings panel */}
+      {/* on-canvas material switcher — visible without opening the settings */}
+      {showCanvas && isMaterial && material.material && (
+        <MaterialSwitcher
+          variants={variants}
+          activeIndex={activeIndex}
+          thumbnails={material.material.thumbnails}
+          extraImages={material.material.extraImages}
+          solo={materialView.solo}
+          pending={variantTextures.status === "decoding"}
+          onVariant={setMaterialVariant}
+          onSolo={toggleMaterialSolo}
+        />
+      )}
+
+      {/* right floating settings panel (a bottom sheet on phones) */}
       {showCanvas && (
-        <SettingsPanel
+        <SettingsDrawer
           settings={settings}
           open={settingsOpen}
+          onOpenChange={setSettingsOpen}
           onApplyPreset={applyPreset}
           onUpdate={update}
           onResetScene={resetScene}
-          onClose={() => setSettingsOpen(false)}
           title={isMaterial ? "Material Settings" : undefined}
         >
           {isMaterial && material.material && (
             <MaterialControls
-              variants={variants}
               active={variants[activeIndex] ?? null}
-              activeIndex={activeIndex}
-              thumbnails={material.material.thumbnails}
-              extraImages={material.material.extraImages}
               shape={materialView.shape}
               tile={materialView.tile}
               relief={materialView.relief}
-              solo={materialView.solo}
-              onVariant={setMaterialVariant}
               onShape={setMaterialShape}
               onTile={setMaterialTile}
               onRelief={setMaterialRelief}
-              onSolo={toggleMaterialSolo}
             />
           )}
-        </SettingsPanel>
+        </SettingsDrawer>
       )}
 
       {/* bottom floating toolbar */}

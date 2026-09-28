@@ -19,35 +19,43 @@ function SheetContent({
   className,
   children,
   side = 'right',
+  showClose = true,
   ...props
-}: ComponentProps<typeof SheetPrimitive.Content> & { side?: 'top' | 'right' | 'bottom' | 'left' }) {
+}: ComponentProps<typeof SheetPrimitive.Content> & {
+  side?: 'top' | 'right' | 'bottom' | 'left';
+  /** Off when the sheet body renders its own close button in its header. */
+  showClose?: boolean;
+}) {
   return (
     <SheetPrimitive.Portal>
       <SheetPrimitive.Overlay
         data-slot="sheet-overlay"
-        className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
+        className="data-[state=open]:anim-overlay-in data-[state=closed]:anim-overlay-out fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]"
       />
       <SheetPrimitive.Content
         data-slot="sheet-content"
+        data-side={side}
         className={cn(
-          'bg-card data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-0 transition ease-in-out data-[state=closed]:duration-250 data-[state=open]:duration-300',
+          'bg-white data-[state=open]:anim-sheet-in data-[state=closed]:anim-sheet-out fixed z-50 flex flex-col gap-0',
           side === 'right' &&
-            'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-full max-w-[min(22rem,88vw)] border-l',
+            'inset-y-0 right-0 h-full w-full max-w-[min(22rem,88vw)] border-l [--sheet-shift:100%_0]',
           side === 'left' &&
-            'data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-full max-w-[min(22rem,88vw)] border-r',
+            'inset-y-0 left-0 h-full w-full max-w-[min(22rem,88vw)] border-r [--sheet-shift:-100%_0]',
           side === 'top' &&
-            'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b',
+            'inset-x-0 top-0 h-auto border-b [--sheet-shift:0_-100%]',
           side === 'bottom' &&
-            'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-[85dvh] rounded-t-2xl border-t',
+            'inset-x-0 bottom-0 h-[85dvh] rounded-t-2xl border-t [--sheet-shift:0_100%]',
           className,
         )}
         {...props}
       >
         {children}
-        <SheetPrimitive.Close className="ring-offset-background focus-visible:ring-ring absolute top-4 right-4 rounded-lg p-1 opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-[3px] focus-visible:outline-none">
-          <XIcon className="size-4" />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
+        {showClose && (
+          <SheetPrimitive.Close className="ring-offset-background focus-visible:ring-ring absolute top-4 right-4 rounded-lg p-1 opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-[3px] focus-visible:outline-none">
+            <XIcon className="size-4" />
+            <span className="sr-only">Close</span>
+          </SheetPrimitive.Close>
+        )}
       </SheetPrimitive.Content>
     </SheetPrimitive.Portal>
   );

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Sheet, SheetContent } from '../ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 import SettingsPanel, { SettingsPanelContent } from '../viewer/SettingsPanel';
 import { useIsWide } from '../../hooks/useMediaQuery';
 import type { ScenePresetName, SceneSettings } from '../../types/model';
@@ -65,9 +65,11 @@ export default function SettingsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="bottom"
-        className="bg-surface border-surface-border backdrop-blur-2xl"
-        aria-label="Scene settings"
+        showClose={false}
+        aria-describedby={undefined}
+        className="border-gray-100 bg-white backdrop-blur-2xl"
       >
+        <SheetTitle className="sr-only">{title ?? 'Scene Settings'}</SheetTitle>
         {content}
       </SheetContent>
     </Sheet>

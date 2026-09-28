@@ -94,6 +94,64 @@ body {
   }
 }
 
+/* Sheet slide: the side sets `--sheet-shift`, so one pair of keyframes
+   animates every edge. `translate` keeps clear of `transform`. */
+@keyframes sheet-in {
+  from {
+    opacity: 0.55;
+    translate: var(--sheet-shift, 0 100%);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes sheet-out {
+  from {
+    opacity: 1;
+    translate: 0 0;
+  }
+  to {
+    opacity: 0.5;
+    translate: var(--sheet-shift, 0 100%);
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@utility anim-sheet-in {
+  animation: sheet-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility anim-sheet-out {
+  animation: sheet-out 0.24s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@utility anim-overlay-in {
+  animation: overlay-in 0.25s ease-out both;
+}
+
+@utility anim-overlay-out {
+  animation: overlay-out 0.2s ease-in both;
+}
+
 .anim-float-y {
   animation: float-y 5s ease-in-out infinite;
 }

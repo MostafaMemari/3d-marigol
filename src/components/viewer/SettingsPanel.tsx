@@ -5,9 +5,8 @@ import Toggle from '../ui/Toggle';
 import { BACKGROUND_OPTIONS, PRESET_ORDER, SCENE_PRESETS } from '../../lib/constants';
 import type { BackgroundOption, ScenePresetName, SceneSettings } from '../../types/model';
 
-interface Props {
+interface ContentProps {
   settings: SceneSettings;
-  open: boolean;
   onApplyPreset: (name: ScenePresetName) => void;
   onUpdate: (patch: Partial<SceneSettings>) => void;
   onResetScene: () => void;
@@ -16,6 +15,10 @@ interface Props {
   title?: string;
   /** Extra sections rendered above the scene settings. */
   children?: ReactNode;
+}
+
+interface Props extends ContentProps {
+  open: boolean;
 }
 
 const PRESET_META: Record<ScenePresetName, { icon: typeof Scan; hint: string }> = {
@@ -40,26 +43,22 @@ function SectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-export default function SettingsPanel({
+/**
+ * Heading plus the scrolling settings body, without any positioning of its
+ * own, so the same content can sit in the desktop panel or in a phone sheet.
+ */
+export function SettingsPanelContent({
   settings,
-  open,
   onApplyPreset,
   onUpdate,
   onResetScene,
   onClose,
   title = 'Scene Settings',
   children,
-}: Props) {
+}: ContentProps) {
   return (
-    <aside
-      className={`pointer-events-auto absolute top-16 right-3 z-30 flex max-h-[calc(100%-7.5rem)] w-[224px] max-w-[calc(100vw-4.5rem)] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/78 shadow-[0_24px_60px_-16px_rgba(17,24,39,0.35)] backdrop-blur-2xl transition-all duration-300 ease-out sm:right-4 sm:w-[248px] ${
-        open
-          ? 'translate-x-0 opacity-100'
-          : 'pointer-events-none translate-x-6 opacity-0'
-      }`}
-      aria-hidden={!open}
-    >
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+    <>
+      <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3">
         <p className="text-[13.5px] font-bold tracking-tight text-gray-900">{title}</p>
         <div className="flex items-center gap-1">
           <button
@@ -82,7 +81,7 @@ export default function SettingsPanel({
         </div>
       </div>
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3.5">
+      <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-3 py-3.5">
         {children}
 
         <div>
@@ -215,6 +214,25 @@ export default function SettingsPanel({
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+/** Floating settings panel for tablets and desktops. */
+export default function SettingsPanel({
+  open,
+  ...content
+}: Props) {
+  return (
+    <aside
+      className={`pointer-events-auto absolute top-16 right-3 z-30 flex max-h-[calc(100%-7.5rem)] w-[224px] max-w-[calc(100vw-4.5rem)] flex-col overflow-hidden rounded-2xl border border-white/50 bg-white/78 shadow-[0_24px_60px_-16px_rgba(17,24,39,0.35)] backdrop-blur-2xl transition-all duration-300 ease-out sm:right-4 sm:w-[248px] ${
+        open
+          ? 'translate-x-0 opacity-100'
+          : 'pointer-events-none translate-x-6 opacity-0'
+      }`}
+      aria-hidden={!open}
+    >
+      <SettingsPanelContent {...content} />
     </aside>
   );
 }
