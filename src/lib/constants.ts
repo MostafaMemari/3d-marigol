@@ -1,12 +1,42 @@
 import type { AssetType, BackgroundOption, ScenePresetName, SceneSettings } from '../types/model';
 import type { MaterialMapKind, MaterialShape } from '../types/material';
 
-export const MODEL_BASE_URL =
-  'https://s3.ir-thr-at1.arvanstorage.ir/marigol/models';
+/**
+ * Where assets are fetched from. Every host is overridable per environment, so
+ * a build can point at a CDN without touching code:
+ *
+ *   VITE_MODEL_BASE_URL     https://s3.ir-thr-at1.arvanstorage.ir/marigol/models
+ *   VITE_MATERIAL_BASE_URL  https://s3.ir-thr-at1.arvanstorage.ir/marigol/materials
+ *   VITE_PRODUCT_BASE_URL   https://marigol.ir
+ *
+ * A bare host (`dl.marigol.ir/material`) is accepted — https is filled in, and
+ * trailing slashes are dropped so paths always join with a single slash.
+ */
+const DEFAULT_MODEL_BASE_URL = 'https://s3.ir-thr-at1.arvanstorage.ir/marigol/models';
+const DEFAULT_MATERIAL_BASE_URL = 'https://s3.ir-thr-at1.arvanstorage.ir/marigol/materials';
+const DEFAULT_PRODUCT_BASE_URL = 'https://marigol.ir';
+
+function assetBaseUrl(value: string | undefined, fallback: string): string {
+  const trimmed = (value ?? '').trim().replace(/\/+$/, '');
+  if (!trimmed) return fallback;
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+export const MODEL_BASE_URL = assetBaseUrl(
+  import.meta.env.VITE_MODEL_BASE_URL,
+  DEFAULT_MODEL_BASE_URL,
+);
 
 /** Material packages live beside the models as a plain ZIP of texture files. */
-export const MATERIAL_BASE_URL =
-  'https://s3.ir-thr-at1.arvanstorage.ir/marigol/materials';
+export const MATERIAL_BASE_URL = assetBaseUrl(
+  import.meta.env.VITE_MATERIAL_BASE_URL,
+  DEFAULT_MATERIAL_BASE_URL,
+);
+
+export const PRODUCT_BASE_URL = assetBaseUrl(
+  import.meta.env.VITE_PRODUCT_BASE_URL,
+  DEFAULT_PRODUCT_BASE_URL,
+);
 
 export const QUERY_PARAM_ID = 'id';
 export const QUERY_PARAM_TYPE = 'type';
@@ -106,7 +136,7 @@ export function normalizeAssetType(raw: string | null | undefined): AssetType {
 }
 
 export function buildProductUrl(id: string): string {
-  return `https://marigol.ir/?p=${encodeURIComponent(id.trim())}`;
+  return `${PRODUCT_BASE_URL}/?p=${encodeURIComponent(id.trim())}`;
 }
 
 export function getLoadingMessage(
