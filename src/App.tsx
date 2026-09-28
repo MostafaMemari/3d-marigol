@@ -4,6 +4,7 @@ import { useModelUrl } from "./hooks/useModelUrl";
 import { useModelLoader } from "./hooks/useModelLoader";
 import { useMaterialLoader } from "./hooks/useMaterialLoader";
 import { useMaterialView } from "./hooks/useMaterialView";
+import { useVariantTextures } from "./hooks/useVariantTextures";
 import { useSceneSettings } from "./hooks/useSceneSettings";
 import LoadingScreen from "./components/viewer/LoadingScreen";
 import ErrorState from "./components/viewer/ErrorState";
@@ -11,10 +12,13 @@ import ViewerControls from "./components/viewer/ViewerControls";
 import SettingsPanel from "./components/viewer/SettingsPanel";
 import MaterialControls from "./components/viewer/MaterialControls";
 import type { ViewerHandle } from "./types/model";
+import type { MaterialVariant } from "./types/material";
 import { BACKGROUND_CSS, buildProductUrl, getInteractionHint } from "./lib/constants";
 
 const ModelViewer = lazy(() => import("./components/viewer/ModelViewer"));
 const MaterialViewer = lazy(() => import("./components/viewer/MaterialViewer"));
+
+const EMPTY_VARIANTS: MaterialVariant[] = [];
 
 /** Wording for the shared error screen when the asset is a material package. */
 const MATERIAL_ERROR_COPY = {
@@ -43,10 +47,14 @@ export default function App() {
   const {
     view: materialView,
     setShape: setMaterialShape,
+    setVariant: setMaterialVariant,
     setTile: setMaterialTile,
     setRelief: setMaterialRelief,
     toggleSolo: toggleMaterialSolo,
   } = useMaterialView();
+  const variants = material.material?.variants ?? EMPTY_VARIANTS;
+  const activeIndex = Math.min(materialView.variant, Math.max(0, variants.length - 1));
+  const variantTextures = useVariantTextures(material.material, activeIndex);
   const viewerRef = useRef<ViewerHandle>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -104,7 +112,7 @@ export default function App() {
                 ? material.material && (
                     <MaterialViewer
                       ref={viewerRef}
-                      material={material.material}
+                      textures={variantTextures.textures}
                       shape={materialView.shape}
                       tile={materialView.tile}
                       relief={materialView.relief}
@@ -217,12 +225,16 @@ export default function App() {
         >
           {isMaterial && material.material && (
             <MaterialControls
-              files={material.material.files}
+              variants={variants}
+              active={variants[activeIndex] ?? null}
+              activeIndex={activeIndex}
+              thumbnails={material.material.thumbnails}
               extraImages={material.material.extraImages}
               shape={materialView.shape}
               tile={materialView.tile}
               relief={materialView.relief}
               solo={materialView.solo}
+              onVariant={setMaterialVariant}
               onShape={setMaterialShape}
               onTile={setMaterialTile}
               onRelief={setMaterialRelief}

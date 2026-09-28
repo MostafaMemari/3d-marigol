@@ -1,17 +1,26 @@
-import { Box, Circle, Eye, Grid2x2, Square } from 'lucide-react';
+import { Box, Circle, Eye, Grid2x2, Layers, Square } from 'lucide-react';
 import type { ComponentType } from 'react';
 import SliderRow from '../ui/SliderRow';
-import { MATERIAL_RELIEF_RANGE, MATERIAL_SHAPES, MATERIAL_TILE_RANGE } from '../../lib/constants';
+import {
+  MATERIAL_RELIEF_RANGE,
+  MATERIAL_SHAPES,
+  MATERIAL_THUMBNAIL_SIZE,
+  MATERIAL_TILE_RANGE,
+} from '../../lib/constants';
 import { TEXTURE_MAP_LABELS, TEXTURE_MAP_ORDER } from '../../lib/materialMaps';
-import type { MaterialMapKind, MaterialShape, MaterialSourceFile } from '../../types/material';
+import type { MaterialMapKind, MaterialShape, MaterialVariant } from '../../types/material';
 
 interface Props {
-  files: MaterialSourceFile[];
+  variants: MaterialVariant[];
+  active: MaterialVariant | null;
+  activeIndex: number;
+  thumbnails: Record<string, string>;
   extraImages: string[];
   shape: MaterialShape;
   tile: number;
   relief: number;
   solo: MaterialMapKind | null;
+  onVariant: (index: number) => void;
   onShape: (shape: MaterialShape) => void;
   onTile: (tile: number) => void;
   onRelief: (relief: number) => void;
@@ -32,21 +41,85 @@ function SectionTitle({ children }: { children: string }) {
   );
 }
 
+function VariantStrip({
+  variants,
+  activeIndex,
+  thumbnails,
+  onVariant,
+}: Pick<Props, 'variants' | 'activeIndex' | 'thumbnails' | 'onVariant'>) {
+  if (variants.length < 2) return null;
+
+  return (
+    <>
+      <SectionTitle>{`Materials (${variants.length})`}</SectionTitle>
+      <div className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {variants.map((variant, index) => {
+          const active = index === activeIndex;
+          const thumb = variant.maps.basecolor ? thumbnails[variant.maps.basecolor] : undefined;
+          return (
+            <button
+              key={variant.name}
+              type="button"
+              onClick={() => onVariant(index)}
+              aria-pressed={active}
+              aria-label={`Preview ${variant.name}`}
+              title={variant.name}
+              className={`group flex w-[60px] shrink-0 cursor-pointer flex-col items-center gap-1 rounded-xl border p-1 transition-all duration-200 active:scale-95 ${
+                active
+                  ? 'border-brand/50 bg-brand-to/10 shadow-md'
+                  : 'border-gray-200 bg-white hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-sm'
+              }`}
+            >
+              {thumb ? (
+                <img
+                  src={thumb}
+                  alt={variant.name}
+                  width={MATERIAL_THUMBNAIL_SIZE / 2}
+                  height={MATERIAL_THUMBNAIL_SIZE / 2}
+                  className="h-10 w-10 rounded-lg border border-gray-200 bg-gray-100 object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                  <Layers className="h-4 w-4 text-gray-300" />
+                </span>
+              )}
+              <span
+                className={`w-full truncate text-center text-[9.5px] leading-tight font-bold tracking-tight ${
+                  active ? 'text-brand-from' : 'text-gray-500'
+                }`}
+              >
+                {variant.name}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 /** Material-only controls, slotted above the shared scene settings. */
 export default function MaterialControls({
-  files,
+  variants,
+  active,
+  activeIndex,
+  thumbnails,
   extraImages,
   shape,
   tile,
   relief,
   solo,
+  onVariant,
   onShape,
   onTile,
   onRelief,
   onSolo,
 }: Props) {
-  const hasHeight = files.some((file) => file.kind === 'height');
-  const missing = TEXTURE_MAP_ORDER.length - files.length;
+  const maps = active?.maps ?? {};
+  const provided = TEXTURE_MAP_ORDER.filter((kind) => maps[kind]);
+  const hasHeight = Boolean(maps.height);
 
   return (
     <>
@@ -55,7 +128,7 @@ export default function MaterialControls({
         <div className="mt-2 grid grid-cols-3 gap-1.5">
           {MATERIAL_SHAPES.map((value) => {
             const { icon: Icon, label } = SHAPE_META[value];
-            const active = shape === value;
+            const isActive = shape === value;
             return (
               <button
                 key={value}
@@ -63,14 +136,16 @@ export default function MaterialControls({
                 onClick={() => onShape(value)}
                 title={label}
                 aria-label={`${label} preview`}
-                aria-pressed={active}
+                aria-pressed={isActive}
                 className={`group flex cursor-pointer flex-col items-center gap-1 rounded-xl border p-2.5 transition-all duration-200 active:scale-95 ${
-                  active
+                  isActive
                     ? 'border-gray-900 bg-gray-900 text-white shadow-lg shadow-gray-900/20'
                     : 'border-gray-200 bg-white text-gray-700 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${active ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                <Icon
+                  className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-600'}`}
+                />
                 <span className="text-[11.5px] font-bold">{label}</span>
               </button>
             );
@@ -102,39 +177,52 @@ export default function MaterialControls({
         </div>
       </div>
 
+      <VariantStrip
+        variants={variants}
+        activeIndex={activeIndex}
+        thumbnails={thumbnails}
+        onVariant={onVariant}
+      />
+
       <div>
-        <SectionTitle>Detected Maps</SectionTitle>
+        <SectionTitle>Maps in this Material</SectionTitle>
         <div className="mt-2 space-y-1.5">
-          {files.map((file) => {
-            const active = solo === file.kind;
+          {provided.map((kind) => {
+            const fileName = maps[kind];
+            const thumb = fileName ? thumbnails[fileName] : undefined;
+            const isActive = solo === kind;
             return (
               <button
-                key={file.kind}
+                key={kind}
                 type="button"
-                onClick={() => onSolo(file.kind)}
-                aria-pressed={active}
-                title={`Isolate ${TEXTURE_MAP_LABELS[file.kind]}`}
+                onClick={() => onSolo(kind)}
+                aria-pressed={isActive}
+                title={`Isolate ${TEXTURE_MAP_LABELS[kind]}`}
                 className={`flex w-full cursor-pointer items-center gap-2.5 rounded-xl border p-2 text-left transition-all duration-200 active:scale-[0.98] ${
-                  active
+                  isActive
                     ? 'border-brand/40 bg-brand-to/10 shadow-sm'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
-                <img
-                  src={file.url}
-                  alt={TEXTURE_MAP_LABELS[file.kind]}
-                  className="h-9 w-9 shrink-0 rounded-lg border border-gray-200 bg-gray-100 object-cover"
-                />
+                {thumb ? (
+                  <img
+                    src={thumb}
+                    alt={TEXTURE_MAP_LABELS[kind]}
+                    className="h-9 w-9 shrink-0 rounded-lg border border-gray-200 bg-gray-100 object-cover"
+                  />
+                ) : (
+                  <span className="h-9 w-9 shrink-0 rounded-lg bg-gray-100" />
+                )}
                 <span className="min-w-0 flex-1">
                   <span className="block text-[12.5px] leading-tight font-bold text-gray-800">
-                    {TEXTURE_MAP_LABELS[file.kind]}
+                    {TEXTURE_MAP_LABELS[kind]}
                   </span>
                   <span className="block truncate font-mono text-[10.5px] text-gray-400">
-                    {file.name}
+                    {fileName}
                   </span>
                 </span>
                 <Eye
-                  className={`h-4 w-4 shrink-0 ${active ? 'text-brand' : 'text-gray-300'}`}
+                  className={`h-4 w-4 shrink-0 ${isActive ? 'text-brand' : 'text-gray-300'}`}
                 />
               </button>
             );
@@ -142,8 +230,10 @@ export default function MaterialControls({
         </div>
         <div className="mt-2 flex items-center gap-1.5 px-1 text-[11px] font-medium text-gray-400">
           <Grid2x2 className="h-3.5 w-3.5" />
-          {files.length} of {TEXTURE_MAP_ORDER.length} maps
-          {missing > 0 && <span>· no {missing} provided</span>}
+          {provided.length} of {TEXTURE_MAP_ORDER.length} maps
+          {TEXTURE_MAP_ORDER.length - provided.length > 0 && (
+            <span>· no {TEXTURE_MAP_ORDER.length - provided.length} provided</span>
+          )}
         </div>
         {extraImages.length > 0 && (
           <p className="mt-1.5 px-1 text-[11px] leading-snug font-medium text-gray-400">

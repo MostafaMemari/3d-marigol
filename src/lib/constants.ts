@@ -38,6 +38,8 @@ export const MATERIAL_PLANE_SEGMENTS = 96;
 export const MATERIAL_DEFAULT_ROUGHNESS = 0.82;
 export const MATERIAL_DISPLACEMENT_SCALE = 0.045;
 export const MATERIAL_MAX_ANISOTROPY = 8;
+/** Edge of the square previews in the variant list. */
+export const MATERIAL_THUMBNAIL_SIZE = 64;
 export const MATERIAL_DEFAULT_ENV_INTENSITY = 0.75;
 export const MATERIAL_AUTOROTATE_SPEED = 1.1;
 
@@ -47,6 +49,8 @@ export const MATERIAL_TILE_RANGE = { min: 1, max: 8, step: 1 } as const;
 export const MATERIAL_RELIEF_RANGE = { min: 0, max: 2, step: 0.05 } as const;
 
 export interface MaterialViewSettings {
+  /** Index of the material shown in the preview. */
+  variant: number;
   shape: MaterialShape;
   /** UV repeat applied to every detected map. */
   tile: number;
@@ -57,6 +61,7 @@ export interface MaterialViewSettings {
 }
 
 export const DEFAULT_MATERIAL_VIEW: MaterialViewSettings = {
+  variant: 0,
   shape: 'sphere',
   tile: 2,
   relief: 0.6,

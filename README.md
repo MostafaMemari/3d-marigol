@@ -30,11 +30,28 @@ to PBR channels:
 | Height / bump     | height, bump, displacement, displace     |
 
 Keywords match whole words, so `wood_base_color`, `wood_normal_map` and
-folder layouts such as `normal/wood.jpg` all resolve. Packages that do not
-follow PBR naming (photo sets like `STONE 01.jpg` + `STONE 01 BUMP.jpg`)
-still preview: the first unclaimed JPEG becomes the base colour and its
-`BUMP` sibling the height map, and the remaining images are reported in the
-settings panel instead of being decoded.
+folder layouts such as `normal/wood.jpg` all resolve.
+
+### One material per texture set
+
+Every JPG in the archive becomes a selectable material, in natural name order
+(`STONE 2` before `STONE 10`):
+
+```
+STONE 01.jpg  +  STONE 01 BUMP.jpg   →  material "STONE 01"  (base colour + height)
+STONE 02.jpg  +  STONE 02 BUMP.jpg   →  material "STONE 02"
+```
+
+Channel words are stripped from the end of a file name to find its material,
+so `wood_bump.jpg`, `wood-bump.jpg`, `wood.bump.jpg` and `wood BUMP.jpg` all
+pair with `wood.jpg` — the `_bump` convention needs no new code. A channel file
+with no colour map (`orphan_bump.jpg`) cannot be previewed and is listed as an
+extra image instead of failing the page.
+
+Only the material being looked at is decoded: thumbnails come from scaled
+`createImageBitmap` passes, and the full-size textures of the previous material
+are disposed the moment you switch. A package with fifty photos therefore holds
+two textures at a time.
 
 See [CACHING.md](./CACHING.md) for the runtime request and memory strategy.
 

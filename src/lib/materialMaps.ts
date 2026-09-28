@@ -1,4 +1,4 @@
-import type { MaterialMapKind } from '../types/material';
+import type { MaterialMapKind, MaterialVariant } from '../types/material';
 
 /** Panel order — the order channels are listed and applied in. */
 export const TEXTURE_MAP_ORDER: MaterialMapKind[] = [
@@ -47,7 +47,13 @@ const DETECTION_ORDER: MaterialMapKind[] = [
 ];
 
 const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'avif', 'bmp', 'gif']);
-const JPEG_EXTENSIONS = new Set(['jpg', 'jpeg']);
+
+/** Natural order so `STONE 2` sorts before `STONE 10`. */
+const COLLATOR = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+export function compareNaturally(a: string, b: string): number {
+  return COLLATOR.compare(a, b);
+}
 
 export function getFileExtension(fileName: string): string {
   const name = fileName.split(/[\\/]/).pop() ?? '';
@@ -81,42 +87,71 @@ export function detectTextureMap(fileName: string): MaterialMapKind | null {
 }
 
 /**
- * Maps every image in the package to a channel. The first file wins when a
- * channel is supplied twice, with names sorted so the result is deterministic.
- *
- * Packages that do not follow PBR naming (photo sets such as
- * `STONE 01.jpg` + `STONE 01 BUMP.jpg`) still get a preview: the first
- * unassigned JPEG becomes the base colour. Images left over after that are
- * reported so the UI can say what the archive holds.
+ * Splits a file name into the material it belongs to and the channel word it
+ * carries: `STONE 01 BUMP.jpg` → `STONE 01` + bump, `wood_normal.png` → `wood`
+ * + normal. Any trailing channel words are stripped, which is what makes the
+ * `_bump` / `-normal` / ` BUMP` naming conventions all pair up with their
+ * colour map without extra rules.
  */
-export function detectTextureMaps(fileNames: string[]): Map<MaterialMapKind, string> {
-  const images = fileNames.filter(isImageFile).sort();
-  const detected = new Map<MaterialMapKind, string>();
-
-  images.forEach((name) => {
-    const kind = detectTextureMap(name);
-    if (kind && !detected.has(kind)) detected.set(kind, name);
-  });
-
-  if (!detected.has('basecolor')) {
-    const assigned = new Set(detected.values());
-    const spare = images.filter((name) => !assigned.has(name));
-    const fallback =
-      spare.find((name) => JPEG_EXTENSIONS.has(getFileExtension(name))) ?? spare[0];
-    if (fallback) detected.set('basecolor', fallback);
-  }
-
-  return detected;
+function splitChannelSuffix(fileName: string): { name: string; key: string } {
+  const stem = (fileName.split(/[\\/]/).pop() ?? fileName).replace(/\.[^.]+$/, '');
+  const parts = stem.split(/[^a-z0-9]+/i).filter(Boolean);
+  const kept = [...parts];
+  while (kept.length > 1 && isChannelToken(kept[kept.length - 1])) kept.pop();
+  const name = kept.join(' ');
+  return { name: name || stem.trim(), key: normalizeKey(name || stem) };
 }
 
-/** Images present in the archive that no channel claimed. */
-export function findUnusedImages(
-  fileNames: string[],
-  detected: Map<MaterialMapKind, string>,
-): string[] {
-  const assigned = new Set(detected.values());
-  return fileNames
+/** Groups `STONE 02` with `STONE 2` — the label keeps the original spelling. */
+function normalizeKey(name: string): string {
+  return name
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .map((token) => (/^0\d+$/.test(token) ? String(Number(token)) : token))
+    .join(' ');
+}
+
+function isChannelToken(token: string): boolean {
+  const lower = token.toLowerCase();
+  return Object.values(MAP_KEYWORDS).some((keywords) => keywords.includes(lower));
+}
+
+/**
+ * Groups the archive images into previewable materials: one variant per colour
+ * map, with any channel file that shares its name attached to it. A lone
+ * `STONE 01 BUMP.jpg` has nothing to preview, so it is reported as extra.
+ */
+export function groupVariants(fileNames: string[]): {
+  variants: MaterialVariant[];
+  extraImages: string[];
+} {
+  const groups = new Map<string, MaterialVariant>();
+  const orphans: string[] = [];
+
+  fileNames
     .filter(isImageFile)
-    .sort()
-    .filter((name) => !assigned.has(name));
+    .sort(compareNaturally)
+    .forEach((fileName) => {
+      const { name, key } = splitChannelSuffix(fileName);
+      const kind = detectTextureMap(fileName) ?? 'basecolor';
+      const group = groups.get(key) ?? { name, maps: {} };
+      if (!group.maps[kind]) group.maps[kind] = fileName;
+      groups.set(key, group);
+    });
+
+  const variants: MaterialVariant[] = [];
+  groups.forEach((group) => {
+    if (group.maps.basecolor) variants.push(group);
+    else orphans.push(...Object.values(group.maps));
+  });
+
+  const claimed = new Set(variants.flatMap((variant) => Object.values(variant.maps)));
+
+  return {
+    variants: variants.sort((a, b) => compareNaturally(a.name, b.name)),
+    extraImages: orphans
+      .filter((name) => !claimed.has(name))
+      .sort(compareNaturally),
+  };
 }

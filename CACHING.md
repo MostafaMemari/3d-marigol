@@ -48,10 +48,12 @@ browser** — no upload, no server-side processing:
 - The ZIP is inflated in the browser with **fflate**, which is loaded as a
   lazy chunk (`dist/assets/browser-*.js`) only when a material is opened —
   model views never download it.
-- `materialMaps.ts` maps file names to PBR channels; only the images that
-  match a channel are decoded into GPU textures. Unclaimed images (e.g. the
-  extra variants of a photo set) are never decoded, so a 10 MB package with
-  ten photos still costs two texture uploads.
+- `materialMaps.ts` groups the images into one material per colour map and
+  attaches the channel files that share its name. Only **list-sized
+  thumbnails** (scaled `createImageBitmap`, 64px) are decoded for the whole
+  archive; full-size textures are decoded on demand by
+  `useVariantTextures` and disposed when the user switches material, so peak
+  GPU memory is two textures regardless of how many JPGs the package holds.
 - Same caching recommendation as models: material URLs are content-addressed
   by ID, so `immutable` is safe once the package is published.
 
@@ -60,6 +62,6 @@ browser** — no upload, no server-side processing:
 - On unmount the viewer traverses the cloned scene and disposes geometries,
   materials, and textures, drops the `useGLTF` cache entry, revokes the blob
   URL, and disposes the PMREM environment — no GPU/CPU leaks when leaving.
-- Material packages release their textures, per-image object URLs and
-  preview geometry through `MaterialPackage.dispose()` when the loader
-  unmounts or a retry replaces the package.
+- Material packages keep only extracted image bytes in memory; every texture,
+  object URL and thumbnail is released by `useVariantTextures` and
+  `disposeTextures` when the material changes or the viewer unmounts.

@@ -28,13 +28,13 @@ import {
   MATERIAL_PREVIEW_SIZE,
   MATERIAL_TARGET,
 } from '../../lib/constants';
-import type { MaterialMapKind, MaterialPackage, MaterialShape } from '../../types/material';
+import type { MaterialMapKind, MaterialShape, MaterialTextures } from '../../types/material';
 import type { SceneSettings, ViewerHandle } from '../../types/model';
 
 export type MaterialViewerHandle = ViewerHandle;
 
 interface Props {
-  material: MaterialPackage;
+  textures: MaterialTextures | null;
   shape: MaterialShape;
   tile: number;
   relief: number;
@@ -69,7 +69,7 @@ function createPreviewGeometry(shape: MaterialShape): THREE.BufferGeometry {
 /** Channel isolation view: a single map shown flat, everything else off. */
 function applySolo(
   material: THREE.MeshPhysicalMaterial,
-  textures: MaterialPackage['textures'],
+  textures: MaterialTextures,
   solo: MaterialMapKind,
 ): void {
   material.map = textures[solo] ?? null;
@@ -85,7 +85,7 @@ function applySolo(
 
 function applyPbr(
   material: THREE.MeshPhysicalMaterial,
-  textures: MaterialPackage['textures'],
+  textures: MaterialTextures,
   relief: number,
 ): void {
   const { basecolor, normal, roughness, metallic, ao, height } = textures;
@@ -101,8 +101,10 @@ function applyPbr(
   material.displacementScale = height ? relief * MATERIAL_DISPLACEMENT_SCALE : 0;
 }
 
+const NO_MAPS: MaterialTextures = {};
+
 function PreviewObject({
-  material: source,
+  textures,
   shape,
   tile,
   relief,
@@ -110,7 +112,7 @@ function PreviewObject({
   wireframe,
   onReady,
 }: {
-  material: MaterialPackage;
+  textures: MaterialTextures | null;
   shape: MaterialShape;
   tile: number;
   relief: number;
@@ -130,23 +132,24 @@ function PreviewObject({
     [],
   );
   const geometry = useMemo(() => createPreviewGeometry(shape), [shape]);
+  const maps = textures ?? NO_MAPS;
 
   // Tiling lives on the textures, everything else on the material instance.
   useEffect(() => {
-    Object.values(source.textures).forEach((texture) => {
+    Object.values(maps).forEach((texture) => {
       if (texture) texture.repeat.set(tile, tile);
     });
-  }, [source, tile]);
+  }, [maps, tile]);
 
   useEffect(() => {
     if (solo) {
-      applySolo(pbr, source.textures, solo);
+      applySolo(pbr, maps, solo);
     } else {
-      applyPbr(pbr, source.textures, relief);
+      applyPbr(pbr, maps, relief);
     }
     pbr.wireframe = wireframe;
     pbr.needsUpdate = true;
-  }, [pbr, source, solo, relief, wireframe]);
+  }, [pbr, maps, solo, relief, wireframe]);
 
   // Disposal per resource: a shape change must not release the material.
   useEffect(() => () => geometry.dispose(), [geometry]);
@@ -215,7 +218,7 @@ function SoftGroundShadow({
 
 const MaterialViewer = forwardRef<MaterialViewerHandle, Props>(function MaterialViewer(
   {
-    material,
+    textures,
     shape,
     tile,
     relief,
@@ -369,7 +372,7 @@ const MaterialViewer = forwardRef<MaterialViewerHandle, Props>(function Material
         <directionalLight position={[0, 2, 6]} intensity={0.25} color="#fff4e0" />
 
         <PreviewObject
-          material={material}
+          textures={textures}
           shape={shape}
           tile={tile}
           relief={relief}

@@ -11,6 +11,11 @@ export function useMaterialView() {
     setView((v) => ({ ...v, shape, solo: null }));
   }, []);
 
+  /** Switching material also leaves channel view, which is per material. */
+  const setVariant = useCallback((variant: number) => {
+    setView((v) => ({ ...v, variant, solo: null }));
+  }, []);
+
   const setTile = useCallback((tile: number) => {
     setView((v) => ({ ...v, tile }));
   }, []);
@@ -26,5 +31,5 @@ export function useMaterialView() {
 
   const reset = useCallback(() => setView(DEFAULT_MATERIAL_VIEW), []);
 
-  return { view, setShape, setTile, setRelief, toggleSolo, reset };
+  return { view, setShape, setVariant, setTile, setRelief, toggleSolo, reset };
 }
