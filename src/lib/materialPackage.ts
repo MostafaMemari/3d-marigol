@@ -5,6 +5,7 @@ import type {
   MaterialMapKind,
   MaterialPackage,
   MaterialPackageResult,
+  MaterialStage,
   MaterialTextures,
   MaterialVariant,
 } from '../types/material';
@@ -89,23 +90,36 @@ async function createThumbnail(blob: Blob): Promise<string | null> {
  * Unpacks a material ZIP entirely on the client: inflates the archive, groups
  * the images into materials and builds list-sized thumbnails. Full-size
  * textures stay undecoded until a variant is opened.
+ *
+ * `onStage` reports the step the pipeline is on, so the viewer can show real
+ * progress instead of a frozen bar.
  */
-export async function extractMaterialPackage(blob: Blob): Promise<MaterialPackageResult> {
+export async function extractMaterialPackage(
+  blob: Blob,
+  onStage?: (stage: MaterialStage) => void,
+): Promise<MaterialPackageResult> {
   let files: Record<string, Uint8Array>;
   try {
+    onStage?.('inflating');
     files = await unpackImages(new Uint8Array(await blob.arrayBuffer()));
   } catch {
     return { ok: false, kind: 'bad-package' };
   }
 
+  onStage?.('grouping');
   const names = Object.keys(files);
   const { variants, extraImages } = groupVariants(names);
   if (variants.length === 0) return { ok: false, kind: 'empty-package' };
 
-  const used = [...new Set(variants.flatMap((variant) => Object.values(variant.maps)))]
+  // The preview image of a material is needed even when it is not a map, so
+  // every claimed image and every preview is thumbnailed.
+  const claimed = new Set(variants.flatMap((variant) => Object.values(variant.maps)));
+  const previews = variants.map((variant) => variant.preview).filter((name): name is string => !!name);
+  const used = [...new Set([...claimed, ...previews])]
     .sort()
     .slice(0, MAX_THUMBNAILS);
 
+  onStage?.('thumbnails');
   const pairs = await Promise.all(
     used.map(async (name) => [name, await createThumbnail(toBlob(files[name], name))] as const),
   );
@@ -117,6 +131,7 @@ export async function extractMaterialPackage(blob: Blob): Promise<MaterialPackag
     if (thumb) thumbnails[name] = thumb;
   });
 
+  onStage?.('ready');
   return { ok: true, value: { variants, thumbnails, sources, extraImages } };
 }
 

@@ -83,7 +83,7 @@ export default function MaterialSwitcher({
         <MaterialSwatch
           key={variant.name}
           variant={variant}
-          thumb={variant.maps.basecolor ? thumbnails[variant.maps.basecolor] : undefined}
+          thumb={thumbnails[variant.preview ?? variant.maps.basecolor ?? '']}
           active={index === activeIndex}
           pending={pending && index === activeIndex}
           size={swatchSize}

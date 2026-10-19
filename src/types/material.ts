@@ -21,6 +21,17 @@ export interface MaterialVariant {
   name: string;
   /** Channel → file name inside the package. */
   maps: Partial<Record<MaterialMapKind, string>>;
+  /**
+   * Folder the material came from, when the archive is foldered. A foldered
+   * package treats every folder as one material, so this is the material's
+   * address inside the archive.
+   */
+  folder?: string;
+  /**
+   * Image that stands for the material in the list. Usually the colour map,
+   * but a folder that only ships data maps still needs something to show.
+   */
+  preview?: string;
 }
 
 /** Decoded channels of the active variant. */
@@ -44,3 +55,9 @@ export interface MaterialPackage {
 export type MaterialPackageResult =
   | { ok: true; value: MaterialPackage }
   | { ok: false; kind: 'bad-package' | 'empty-package' };
+
+/**
+ * Steps of the material pipeline, in the order they happen. The viewer shows
+ * the current step, so a slow archive never looks frozen.
+ */
+export type MaterialStage = 'inflating' | 'grouping' | 'thumbnails' | 'ready';

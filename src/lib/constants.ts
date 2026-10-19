@@ -47,6 +47,22 @@ export const MATERIAL_BLOB_TYPE = 'application/zip';
 /** Reported while the browser inflates the ZIP and decodes the textures. */
 export const MATERIAL_EXTRACT_PROGRESS = 96;
 
+/**
+ * Progress of the material pipeline, in the order the work happens:
+ * download → inflate → group → thumbnails. The viewer shows each stage, so a
+ * slow archive never looks frozen.
+ */
+export const MATERIAL_PROGRESS = {
+  /** The archive bytes are in memory, the ZIP is about to be inflated. */
+  inflating: 70,
+  /** The archive is inflated, the files are being grouped into materials. */
+  grouping: 85,
+  /** Thumbnails are being produced for the material list. */
+  thumbnails: 90,
+  /** Everything is ready; only the GPU textures are left to decode. */
+  ready: 100,
+} as const;
+
 export const TARGET_MODEL_SIZE = 2.4;
 
 export const CAMERA_DEFAULT_POSITION: [number, number, number] = [3.2, 2.2, 4.2];
@@ -146,8 +162,9 @@ export function getLoadingMessage(
   if (assetType === 'material') {
     if (progress === null) return 'Connecting to material…';
     if (progress < 20) return 'Connecting to material…';
-    if (progress < 90) return 'Downloading material package…';
-    if (progress < 100) return 'Extracting textures…';
+    if (progress < MATERIAL_PROGRESS.inflating) return 'Downloading material package…';
+    if (progress < MATERIAL_PROGRESS.thumbnails) return 'Extracting textures…';
+    if (progress < 100) return 'Building material previews…';
     return 'Ready';
   }
   if (progress === null) return 'Connecting to model…';

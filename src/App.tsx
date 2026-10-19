@@ -35,6 +35,14 @@ const MATERIAL_ERROR_COPY = {
     title: "Unable to load this material",
     body: "Something interrupted the download. Check your connection and try again — your material is safe.",
   },
+  "bad-package": {
+    title: "Material package is invalid",
+    body: "This ZIP could not be opened. Re-export the package and try again.",
+  },
+  "empty-package": {
+    title: "No textures in this package",
+    body: "The archive opened, but it contains no readable images. Each material needs its own folder of texture maps, for example wood/ with a colour, normal and roughness map.",
+  },
 };
 
 export default function App() {
